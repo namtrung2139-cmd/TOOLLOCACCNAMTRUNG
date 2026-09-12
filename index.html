@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEB LỌC ACC NAMTRUNG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff007c;
+            --neon-yellow: #f1c40f;
+            --neon-green: #00ff87;
+            --neon-purple: #9d00ff;
+            --dark-bg: #0b0c10;
+            --panel-bg: rgba(11, 12, 16, 0.85);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 20px;
+            padding-top: 60px; /* Chừa chỗ cho nút cài đặt */
+            min-height: 100vh;
+            color: #fff;
+            /* Ảnh nền mặc định (Ngầu) */
+            background-image: url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        /* Lớp phủ tối màu để dễ đọc chữ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: -1;
+        }
+
+        /* --- NÚT CÀI ĐẶT NỀN (GÓC TRÁI) --- */
+        .settings-container {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 100;
+        }
+
+        .btn-settings {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-settings:hover { background: rgba(0, 243, 255, 0.2); box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+
+        .theme-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 0;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 8px;
+            width: 180px;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .theme-menu.show { display: flex; animation: fadeIn 0.3s; }
+        .theme-btn {
+            background: transparent; border: none; color: #fff; text-align: left;
+            padding: 12px 15px; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .theme-btn:hover { background: rgba(0, 243, 255, 0.2); padding-left: 20px; color: var(--neon-cyan); }
+        .theme-btn:last-child { border-bottom: none; }
+
+        /* --- POPUP CHÀO MỪNG --- */
+        .modal-overlay {
+            display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .modal-box {
+            background: #111; border: 2px solid var(--neon-cyan); border-radius: 15px;
+            padding: 30px; max-width: 500px; text-align: center;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        .modal-title { font-size: 26px; color: var(--neon-cyan); font-weight: bold; margin-bottom: 15px; text-transform: uppercase; }
+        .modal-text { font-size: 18px; line-height: 1.5; margin-bottom: 20px; color: #ccc; }
+        .zalo-box {
+            background: rgba(255,255,255,0.05); border: 1px dashed var(--neon-purple);
+            padding: 15px; border-radius: 8px; margin-bottom: 20px;
+        }
+        .btn-copy-zalo {
+            background: var(--neon-purple); color: #fff; border: none; padding: 10px 20px;
+            font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 10px; transition: 0.3s;
+        }
+        .btn-copy-zalo:hover { box-shadow: 0 0 15px var(--neon-purple); transform: translateY(-2px); }
+        .btn-close-modal {
+            background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+            padding: 10px 30px; font-size: 18px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-close-modal:hover { background: var(--neon-cyan); color: #000; }
+
+
+        /* --- KHUNG GIAO DIỆN CHÍNH --- */
+        .container {
+            width: 100%; max-width: 1300px; margin: 0 auto;
+            background: var(--panel-bg); backdrop-filter: blur(15px);
+            padding: 30px; border-radius: 15px; border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15); margin-bottom: 30px;
+        }
+
+        h2 {
+            text-align: center; font-size: 38px; font-weight: 700; margin-top: 0; margin-bottom: 20px;
+            letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+        }
+
+        /* --- HƯỚNG DẪN SỬ DỤNG --- */
+        .guide-container {
+            width: 100%; max-width: 1300px; margin: 0 auto;
+            background: rgba(11, 12, 16, 0.9); padding: 30px; border-radius: 15px;
+            border: 1px solid rgba(255, 0, 124, 0.3); box-shadow: 0 0 20px rgba(255, 0, 124, 0.1);
+        }
+        .guide-title {
+            text-align: center; font-size: 28px; color: var(--neon-pink);
+            font-weight: bold; margin-bottom: 25px; border-bottom: 1px dashed var(--neon-pink); padding-bottom: 10px;
+        }
+        .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .guide-box { background: rgba(255,255,255,0.02); padding: 20px; border-radius: 10px; border-left: 3px solid var(--neon-cyan); }
+        .guide-box.purple { border-left-color: var(--neon-purple); }
+        .guide-box h3 { margin-top: 0; color: var(--neon-cyan); font-size: 22px; }
+        .guide-box.purple h3 { color: var(--neon-purple); }
+        .guide-box ul { padding-left: 20px; margin: 0; color: #dcdde1; font-size: 17px; line-height: 1.8; }
+        .guide-box li { margin-bottom: 10px; }
+        .guide-box b { color: #fff; }
+
+        /* --- SẢNH CHỜ (TABS NAVBAR) --- */
+        .tabs { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
+        .tab-btn {
+            font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; padding: 12px 40px; text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; border-radius: 8px; cursor: pointer; transition: 0.3s;
+        }
+        .tab-btn:hover { background: rgba(0, 243, 255, 0.1); }
+        .tab-btn.active { background: rgba(0, 243, 255, 0.2); border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+        .tab-btn.active-purple { background: rgba(157, 0, 255, 0.2); border-color: var(--neon-purple); color: #d896ff; box-shadow: 0 0 15px rgba(157, 0, 255, 0.4); }
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Các style control chung */
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .control-panel-2 { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .control-group { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; border: 1px dashed rgba(0, 243, 255, 0.2); display: flex; flex-direction: column; gap: 10px; }
+        .group-title { font-weight: bold; font-size: 18px; }
+
+        input[type="file"], select, input[type="number"], input[type="text"] {
+            font-family: 'Rajdhani', sans-serif; font-size: 16px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; padding: 10px; border-radius: 5px; outline: none; transition: 0.3s; width: 100%;
+        }
+        input:focus, select:focus { border-color: var(--neon-cyan); }
+        input[type="file"]::file-selector-button {
+            background: #444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-family: 'Rajdhani', sans-serif;
+        }
+
+        button.action-btn {
+            font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; padding: 10px 15px; text-transform: uppercase; border: none; border-radius: 5px;
+            cursor: pointer; transition: all 0.3s ease; color: #fff; width: 100%;
+        }
+        .btn-search { background: linear-gradient(45deg, #00d2ff, #3a7bd5); }
+        .btn-filter { background: linear-gradient(45deg, #ff007c, #8a2387); }
+        .btn-skin { background: linear-gradient(45deg, #f1c40f, #e67e22); }
+        .btn-cut { background: linear-gradient(45deg, #9d00ff, #4a00e0); font-size: 18px; padding: 15px; }
+        button.action-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+        .radio-group { display: flex; gap: 20px; align-items: center; justify-content: center; font-size: 18px; padding: 10px; }
+        .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 600; }
+        .radio-group input[type="radio"] { width: 20px; height: 20px; accent-color: var(--neon-purple); cursor: pointer; }
+
+        .displayArea { background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; height: 450px; overflow-y: auto; font-family: 'Share Tech Mono', monospace; font-size: 14px; line-height: 1.6; color: #a8b2c1; }
+        .displayArea::-webkit-scrollbar { width: 8px; }
+        .displayArea::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .info-text { font-size: 18px; color: #a0aec0; }
+        .action-bar { display: none; gap: 15px; }
+        .btn-copy-all { background: rgba(0, 255, 135, 0.2); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-copy-all:hover { background: var(--neon-green); color: #000; }
+        .btn-export { background: rgba(0, 243, 255, 0.2); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-export:hover { background: var(--neon-cyan); color: #000; }
+
+        .acc-line { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding: 10px; background: rgba(255, 255, 255, 0.02); border-radius: 4px; border-left: 2px solid transparent; gap: 15px; }
+        .acc-line:hover { background: rgba(255, 255, 255, 0.05); border-left: 3px solid #fff; }
+        .acc-content { flex: 1; word-break: break-word; }
+        .btn-copy-single { background: #2d3436; color: #fff; border: 1px solid #636e72; padding: 5px 10px; font-size: 12px; border-radius: 3px; cursor: pointer; }
+        .btn-copy-single:hover { background: #fff; color: #000; border-color: #fff; }
+
+        .highlight { color: #fff; background: var(--neon-pink); padding: 2px 5px; border-radius: 3px; }
+        .highlight-vip { color: #000; background: var(--neon-yellow); padding: 2px 5px; border-radius: 3px; }
+        .highlight-skin { color: #000; background: var(--neon-green); padding: 2px 5px; border-radius: 3px; }
+
+        #toast { visibility: hidden; min-width: 250px; background-color: #000; color: var(--neon-green); text-align: center; border: 1px solid var(--neon-green); border-radius: 5px; padding: 15px; position: fixed; z-index: 2000; right: 30px; bottom: 30px; font-size: 18px; font-weight: bold; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+
+        @media (max-width: 900px) { .control-panel, .guide-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<!-- NÚT CÀI ĐẶT HÌNH NỀN -->
+<div class="settings-container">
+    <button class="btn-settings" onclick="toggleThemeMenu()">
+        ⚙️ ĐỔI HÌNH NỀN
+    </button>
+    <div class="theme-menu" id="themeMenu">
+        <button class="theme-btn" onclick="changeTheme('ngau')">🔥 Ngầu (Mặc định)</button>
+        <button class="theme-btn" onclick="changeTheme('cute')">🌸 Cute</button>
+        <button class="theme-btn" onclick="changeTheme('thiennhien')">🌲 Thiên Nhiên</button>
+        <button class="theme-btn" onclick="changeTheme('vietnam')">🇻🇳 Nước Việt Nam</button>
+        <button class="theme-btn" onclick="changeTheme('bien')">🌊 Cảnh Biển</button>
+    </div>
+</div>
+
+<!-- POPUP CHÀO MỪNG -->
+<div class="modal-overlay" id="welcomeModal">
+    <div class="modal-box">
+        <div class="modal-title">CHÀO MỪNG BẠN!</div>
+        <div class="modal-text">ĐẾN VỚI TOOL LỌC ACC CỦA <b>NAMTRUNG</b></div>
+        
+        <div class="zalo-box">
+            <div style="font-size: 15px; color: #a0aec0; margin-bottom: 5px;">Zalo nhóm để góp ý và nói chuyện:</div>
+            <div style="color: var(--neon-cyan); word-break: break-all; font-family: monospace; font-size: 16px;" id="zaloLinkText">https://zalo.me/g/blureuufiarbhp3fvqic</div>
+            <button class="btn-copy-zalo" onclick="copyZaloLink()">📋 COPY LINK ZALO</button>
+        </div>
+
+        <div class="modal-text" style="font-size: 15px; color: #888; font-style: italic;">
+            Tool còn mới ở mức sơ khai mong các bạn góp ý để sau này mình sẽ nâng cấp lên xịn hơn nhé!
+        </div>
+
+        <button class="btn-close-modal" onclick="closeModal()">VÀO TOOL NGAY</button>
+    </div>
+</div>
+
+<!-- CONTAINER CHÍNH -->
+<div class="container">
+    <h2>🎮 WEB LỌC ACC NAMTRUNG 🎮</h2>
+    
+    <!-- SẢNH CHỜ (TABS) -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('loc-acc', this)">[1] TỔNG LỌC ACC</button>
+        <button class="tab-btn" onclick="switchTab('cat-file', this)">[2] CẮT FILE (LẤY TK/MK)</button>
+    </div>
+
+    <!-- TÍNH NĂNG 1: TỔNG LỌC ACC -->
+    <div id="tab-loc-acc" class="tab-content active">
+        <div class="control-panel">
+            <div class="control-group">
+                <span class="group-title" style="color: var(--neon-cyan);">[1] TÌM TỪ KHÓA CHUNG:</span>
+                <input type="file" id="fileLocAcc" accept=".txt">
+                <input type="text" id="searchInput" placeholder="Tên tướng, ID... (Vd: allain)">
+                <button class="action-btn btn-search" onclick="locAcc.search()">QUÉT TỪ KHÓA</button>
+            </div>
+            <div class="control-group">
+                <span class="group-title" style="color: var(--neon-pink);">[2] LỌC ĐỘ HIẾM SKIN:</span>
+                <select id="filterType">
+                    <option value="SS">Skin SS</option>
+                    <option value="SSS">Skin SSS</option>
+                    <option value="Anime">Skin Anime</option>
+                    <option value="SSM">Skin SSM</option>
+                    <option value="SUKIEN">Skin Sự Kiện</option>
+                </select>
+                <input type="number" id="filterCount" placeholder="Số lượng tối thiểu" min="1">
+                <button class="action-btn btn-filter" onclick="locAcc.filterVIP()">LỌC ACC VIP</button>
+            </div>
+            <div class="control-group">
+                <span class="group-title" style="color: var(--neon-yellow);">[3] LỌC TỔNG SKIN:</span>
+                <input type="number" id="totalSkinCount" placeholder="Tổng skin tối thiểu" min="1">
+                <button class="action-btn btn-skin" onclick="locAcc.filterTotal()">LỌC TỔNG SKIN</button>
+            </div>
+        </div>
+
+        <div class="top-bar">
+            <div class="info-text" id="statusLocAcc">Vui lòng nạp File để khởi động Tổng Lọc.</div>
+            <div class="action-bar" id="actionLocAcc">
+                <button class="btn-copy-all" onclick="locAcc.copyAll()">📋 COPY TẤT CẢ</button>
+                <button class="btn-export" onclick="locAcc.export()">📥 TẢI FILE TXT</button>
+            </div>
+        </div>
+        <div class="displayArea" id="displayLocAcc" style="border-color: rgba(0, 243, 255, 0.3);">
+            <i>[System Ready] Chờ thao tác...</i>
+        </div>
+    </div>
+
+    <!-- TÍNH NĂNG 2: CẮT FILE LẤY TK/MK -->
+    <div id="tab-cat-file" class="tab-content">
+        <div class="control-panel-2">
+            <div class="control-group" style="width: 100%; max-width: 600px; border-color: rgba(157, 0, 255, 0.4);">
+                <span class="group-title" style="color: var(--neon-purple); text-align: center;">NẠP FILE CẦN CẮT & CHỌN ĐẦU RA</span>
+                <input type="file" id="fileCatFile" accept=".txt">
+                
+                <div class="radio-group">
+                    <label style="color: #fff;"><input type="radio" name="outFormat" value="colon" checked> Đầu ra TK:MK</label>
+                    <label style="color: #fff;"><input type="radio" name="outFormat" value="pipe"> Đầu ra TK|MK</label>
+                </div>
+                
+                <button class="action-btn btn-cut" onclick="catFile.process()">✂️ TIẾN HÀNH CẮT FILE LẤY TK/MK</button>
+            </div>
+        </div>
+
+        <div class="top-bar">
+            <div class="info-text" id="statusCatFile">Vui lòng nạp File để cắt.</div>
+            <div class="action-bar" id="actionCatFile">
+                <button class="btn-copy-all" style="border-color: var(--neon-purple); color: var(--neon-purple);" onclick="catFile.copyAll()">📋 COPY TẤT CẢ</button>
+                <button class="btn-export" style="border-color: var(--neon-purple); color: var(--neon-purple);" onclick="catFile.export()">📥 TẢI FILE TXT</button>
+            </div>
+        </div>
+        <div class="displayArea" id="displayCatFile" style="border-color: rgba(157, 0, 255, 0.3);">
+            <i>Hệ thống tự động loại bỏ rác (FINAL=, Result=...) và tách chính xác ID/Pass.</i>
+        </div>
+    </div>
+</div>
+
+<!-- KHU VỰC HƯỚNG DẪN SỬ DỤNG -->
+<div class="guide-container">
+    <div class="guide-title">📖 HƯỚNG DẪN SỬ DỤNG TOOL</div>
+    <div class="guide-grid">
+        <!-- Hướng dẫn mục 1 -->
+        <div class="guide-box">
+            <h3>[1] TỔNG LỌC ACC (Check & Lọc VIP)</h3>
+            <ul>
+                <li><b>Bước 1:</b> Nhấn "Choose File" để tải lên file <code>.txt</code> chứa dữ liệu acc của bạn.</li>
+                <li><b>Bước 2:</b> Muốn tìm tướng, điền tên tướng (VD: Nakroth) vào ô <i>Tìm Từ Khóa Chung</i> rồi bấm <b>QUÉT TỪ KHÓA</b>.</li>
+                <li><b>Bước 3:</b> Muốn lọc Skin VIP, chọn Loại Skin (SS, SSS...), điền Số lượng tối thiểu rồi bấm <b>LỌC ACC VIP</b>.</li>
+                <li><b>Bước 4:</b> Muốn lọc acc nhiều skin, điền số lượng vào ô <i>Lọc Tổng Skin</i> và bấm <b>LỌC TỔNG SKIN</b>.</li>
+                <li><b>Bước 5:</b> Kết quả sẽ hiện bên dưới. Bấm nút <b>COPY TẤT CẢ</b> hoặc <b>TẢI FILE TXT</b> để lưu lại acc đã lọc!</li>
+            </ul>
+        </div>
+        <!-- Hướng dẫn mục 2 -->
+        <div class="guide-box purple">
+            <h3>[2] CẮT FILE (Tách gọn lấy ID/Pass)</h3>
+            <ul>
+                <li><b>Bước 1:</b> Chuyển sang Tab <b>[2] CẮT FILE</b> ở sảnh chờ phía trên.</li>
+                <li><b>Bước 2:</b> Tải lên file <code>.txt</code> hỗn độn (có dính chữ Result=, finally=, hoặc nhiều thông tin rác).</li>
+                <li><b>Bước 3:</b> Chọn định dạng bạn muốn tool xuất ra ở 2 nút tròn: <b>TK:MK</b> hoặc <b>TK|MK</b>.</li>
+                <li><b>Bước 4:</b> Bấm nút màu tím <b>✂️ TIẾN HÀNH CẮT FILE</b>. Tool sẽ tự động bóc tách sạch sẽ.</li>
+                <li><b>Bước 5:</b> Cuối cùng, chỉ việc nhấn <b>COPY TẤT CẢ</b> là bạn đã có tệp Tải khoản & Mật khẩu chuẩn 100%.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div id="toast">Đã copy thành công!</div>
+
+<script>
+    // --- GIAO DIỆN & CÀI ĐẶT NỀN ---
+    function toggleThemeMenu() {
+        document.getElementById('themeMenu').classList.toggle('show');
+    }
+
+    // Đóng menu nếu click ra ngoài
+    document.addEventListener('click', function(event) {
+        const isClickInside = document.querySelector('.settings-container').contains(event.target);
+        if (!isClickInside) {
+            document.getElementById('themeMenu').classList.remove('show');
+        }
+    });
+
+    const themes = {
+        ngau: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop',
+        cute: 'https://images.unsplash.com/photo-1578339591410-b98a08d24eb0?q=80&w=2070&auto=format&fit=crop',
+        thiennhien: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop',
+        vietnam: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop',
+        bien: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop'
+    };
+
+    function changeTheme(themeName) {
+        document.body.style.backgroundImage = `url('${themes[themeName]}')`;
+        document.getElementById('themeMenu').classList.remove('show');
+        showToast("Đã đổi hình nền!");
+    }
+
+    // --- POPUP CHÀO MỪNG ---
+    function closeModal() {
+        document.getElementById('welcomeModal').style.display = 'none';
+    }
+
+    function copyZaloLink() {
+        const link = "https://zalo.me/g/blureuufiarbhp3fvqic";
+        fallbackCopyTextToClipboard(link);
+    }
+
+    // --- HỆ THỐNG COPY FALLBACK ---
+    function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => { showToast("Đã copy thành công!"); })
+            .catch(err => fallbackCopyTextToClipboard(text));
+        } else {
+            fallbackCopyTextToClipboard(text);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.top = "0"; textArea.style.left = "0";
+        textArea.style.position = "fixed"; textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus(); textArea.select();
+        try {
+            var successful = document.execCommand('copy');
+            if (successful) showToast("Đã copy thành công!");
+            else alert("Trình duyệt chặn copy, vui lòng bôi đen copy thủ công!");
+        } catch (err) { alert("Lỗi copy: " + err); }
+        document.body.removeChild(textArea);
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.innerText = msg; toast.className = "show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+    }
+
+    function downloadFile(content, defaultName) {
+        let filename = prompt("Nhập tên file muốn lưu (Không cần ghi đuôi .txt):", defaultName);
+        if (filename === null || filename.trim() === "") return;
+        filename = filename.trim() + ".txt";
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("Đã tải file thành công!");
+    }
+
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('active'); el.classList.remove('active-purple'); });
+        
+        document.getElementById('tab-' + tabId).classList.add('active');
+        if(tabId === 'cat-file') btnElement.classList.add('active-purple');
+        else btnElement.classList.add('active');
+    }
+
+    // ==========================================
+    // MODULE 1: TỔNG LỌC ACC 
+    // ==========================================
+    const locAcc = {
+        rawLines: [], currentResults: [],
+
+        init: function() {
+            document.getElementById('fileLocAcc').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.rawLines = event.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
+                    document.getElementById('statusLocAcc').innerHTML = `✅ Đã nạp <b>${this.rawLines.length}</b> acc!`;
+                    this.currentResults = this.rawLines.map(line => ({ raw: line, html: line }));
+                    this.render(this.currentResults, `Đang hiển thị toàn bộ <b>${this.rawLines.length}</b> acc.`);
+                };
+                reader.readAsText(file);
+            });
+        },
+
+        render: function(resultsArray, message) {
+            this.currentResults = resultsArray;
+            const display = document.getElementById('displayLocAcc');
+            const actionBar = document.getElementById('actionLocAcc');
+            if (resultsArray.length > 0) {
+                let html = "";
+                resultsArray.forEach((res, index) => {
+                    html += `<div class="acc-line"><div class="acc-content">${res.html}</div>
+                             <button class="btn-copy-single" onclick="copyToClipboard(locAcc.currentResults[${index}].raw)">COPY</button></div>`;
+                });
+                display.innerHTML = html;
+                document.getElementById('statusLocAcc').innerHTML = message;
+                actionBar.style.display = "flex";
+            } else {
+                display.innerHTML = `<i>Không tìm thấy kết quả.</i>`;
+                document.getElementById('statusLocAcc').innerHTML = `❌ Không có kết quả.`;
+                actionBar.style.display = "none";
+            }
+        },
+
+        check: function() {
+            if (this.rawLines.length === 0) { alert("⚠️ Vui lòng nạp file TỔNG LỌC ở tab 1 trước!"); return false; }
+            return true;
+        },
+
+        search: function() {
+            if (!this.check()) return;
+            const kw = document.getElementById('searchInput').value.trim();
+            if (!kw) { alert("Nhập từ khóa!"); return; }
+            const regex = new RegExp(`(${kw})`, "gi"); 
+            let res = [];
+            this.rawLines.forEach(line => {
+                if (line.toLowerCase().includes(kw.toLowerCase())) 
+                    res.push({ raw: line, html: line.replace(regex, `<span class="highlight">$1</span>`) });
+            });
+            this.render(res, `🎯 Tìm thấy <b style="color:var(--neon-cyan);">${res.length}</b> acc chứa "${kw}".`);
+        },
+
+        filterVIP: function() {
+            if (!this.check()) return;
+            const type = document.getElementById('filterType').value;
+            const min = parseInt(document.getElementById('filterCount').value);
+            if (isNaN(min) || min <= 0) return alert("Nhập số lượng > 0");
+            let res = [];
+            const regex = new RegExp(`\\|\\s*${type}:\\s*(\\d+|No Skin)`, "i");
+            this.rawLines.forEach(line => {
+                const match = line.match(regex);
+                let count = (match && match[1] && match[1].toLowerCase() !== "no skin") ? parseInt(match[1]) : 0;
+                if (count >= min) {
+                    const hlRegex = new RegExp(`(\\|\\s*${type}:\\s*\\d+.*?)(?=\\||$)`, "i");
+                    res.push({ raw: line, html: line.replace(hlRegex, `<span class="highlight-vip">$1</span>`) });
+                }
+            });
+            this.render(res, `🔥 Lọc được <b>${res.length}</b> acc có >= ${min} skin ${type}.`);
+        },
+
+        filterTotal: function() {
+            if (!this.check()) return;
+            const min = parseInt(document.getElementById('totalSkinCount').value);
+            if (isNaN(min) || min <= 0) return alert("Nhập Tổng Skin hợp lệ!");
+            let res = [];
+            const regex = /\|\s*Skin:\s*(\d+)/i;
+            this.rawLines.forEach(line => {
+                const match = line.match(regex);
+                if (match && parseInt(match[1]) >= min) {
+                    res.push({ raw: line, html: line.replace(/\|(\s*Skin:\s*\d+\s*)\|/i, `|<span class="highlight-skin">$1</span>|`) });
+                }
+            });
+            this.render(res, `🌟 Lọc được <b>${res.length}</b> acc có Tổng Skin >= ${min}.`);
+        },
+        copyAll: function() { copyToClipboard(this.currentResults.map(r => r.raw).join('\n')); },
+        export: function() { downloadFile(this.currentResults.map(r => r.raw).join('\n'), "Ket_Qua_Loc"); }
+    };
+    locAcc.init();
+
+    // ==========================================
+    // MODULE 2: CẮT FILE LẤY TK/MK 
+    // ==========================================
+    const catFile = {
+        rawLines: [], currentResults: [],
+
+        init: function() {
+            document.getElementById('fileCatFile').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.rawLines = event.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
+                    document.getElementById('statusCatFile').innerHTML = `✅ Đã nạp <b>${this.rawLines.length}</b> dòng vào bộ xử lý! Bấm "Tiến hành cắt" nhé.`;
+                };
+                reader.readAsText(file);
+            });
+        },
+
+        process: function() {
+            if (this.rawLines.length === 0) { alert("⚠️ Nạp File ở khung Cắt File trước đi bạn!"); return; }
+            
+            const outFormat = document.querySelector('input[name="outFormat"]:checked').value;
+            const separator = (outFormat === 'colon') ? ':' : '|';
+            this.currentResults = [];
+            let html = ""; let errorCount = 0;
+
+            this.rawLines.forEach((originalLine) => {
+                let line = originalLine.trim();
+                line = line.replace(/^.*?(?:\s*=\s*)/, '');
+                let firstBlock = line.split(/\s+\|\s+/)[0]; 
+                let match = firstBlock.match(/^([^:|]+)[:|](.+)$/);
+                
+                if (match && match.length >= 3) {
+                    let tk = match[1].trim();
+                    let mk = match[2].trim().split('|')[0].trim(); 
+                    let finalString = `${tk}${separator}${mk}`;
+                    this.currentResults.push(finalString);
+                    
+                    html += `<div class="acc-line">
+                                <div class="acc-content" style="color:var(--neon-purple); font-weight:bold; font-size:16px;">${finalString}</div>
+                                <button class="btn-copy-single" onclick="copyToClipboard('${finalString}')">COPY</button>
+                             </div>`;
+                } else { errorCount++; }
+            });
+
+            const display = document.getElementById('displayCatFile');
+            const actionBar = document.getElementById('actionCatFile');
+            display.innerHTML = html;
+            
+            let status = `✂️ Đã cắt thành công <b style="color:var(--neon-purple);">${this.currentResults.length}</b> bộ TK/MK.`;
+            if (errorCount > 0) status += ` (Bỏ qua ${errorCount} dòng rác)`;
+            document.getElementById('statusCatFile').innerHTML = status;
+            actionBar.style.display = "flex";
+        },
+        
+        copyAll: function() { copyToClipboard(this.currentResults.join('\n')); },
+        export: function() { downloadFile(this.currentResults.join('\n'), "Danh_Sach_TKMK"); }
+    };
+    catFile.init();
+
+    // Enter phím tắt
+    document.getElementById("searchInput").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.search(); });
+    document.getElementById("filterCount").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.filterVIP(); });
+    document.getElementById("totalSkinCount").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.filterTotal(); });
+
+</script>
+
+</body>
+</html>
